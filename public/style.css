@@ -71,8 +71,6 @@ html, body {
   font-size: 18px;
   color: #fff;
   border: 2px solid #000;
-  outline: 2px solid;
-  outline-color: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
   box-shadow: 0 0 0 2px #833ab4;
 }
 
@@ -128,26 +126,52 @@ html, body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 12px 12px;
+  padding: 8px 12px 16px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 
 .chat::-webkit-scrollbar { display: none; }
 
-/* ── TIMESTAMP ── */
+/* ── TIMESTAMP (dengan dim overlay) ── */
+.ts-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0 14px;
+  flex-shrink: 0;
+  gap: 0;
+}
+
 .ts {
   text-align: center;
-  font-size: 12px;
+  font-size: 11.5px;
   color: #8e8e93;
-  margin: 14px auto 10px;
   font-weight: 400;
-  letter-spacing: 0.1px;
-  flex-shrink: 0;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.6s ease;
 }
+
+.ts.show { opacity: 1; }
+
+/* ── DIM OVERLAY (layar meredup saat ganti hari) ── */
+.dim-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+}
+
+.dim-overlay.dim-in  { opacity: 0.82; }
+.dim-overlay.dim-out { opacity: 0; }
 
 /* ── BUBBLE ROWS ── */
 .row {
@@ -156,8 +180,14 @@ html, body {
   gap: 8px;
   flex-shrink: 0;
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(5px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+  margin-bottom: 3px;
+}
+
+/* Tambah margin bawah lebih besar saat ganti sisi (him -> me atau me -> him) */
+.row.gap-top {
+  margin-top: 10px;
 }
 
 .row.show {
@@ -184,21 +214,17 @@ html, body {
   margin-bottom: 2px;
 }
 
-.row-avatar.hidden {
-  visibility: hidden;
-}
-
+.row-avatar.invisible { visibility: hidden; }
 .row.me .row-avatar { display: none; }
 
 /* ── BUBBLE ── */
 .bubble {
   max-width: 72vw;
   padding: 9px 13px;
-  border-radius: 22px;
+  border-radius: 20px;
   font-size: 15px;
   line-height: 1.45;
   word-break: break-word;
-  position: relative;
 }
 
 .row.him .bubble {
@@ -213,22 +239,14 @@ html, body {
   border-bottom-right-radius: 5px;
 }
 
-/* last bubble in consecutive sequence — tail */
-.row.him.tail .bubble {
-  border-bottom-left-radius: 5px;
-}
-
-.row.me.tail .bubble {
-  border-bottom-right-radius: 5px;
-}
-
 /* ── READ RECEIPT ── */
 .receipt {
   font-size: 11px;
   color: #8e8e93;
   text-align: right;
   padding-right: 4px;
-  margin-top: 1px;
+  margin-top: 2px;
+  margin-bottom: 4px;
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.4s ease;
@@ -243,16 +261,17 @@ html, body {
   gap: 8px;
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.22s ease;
+  margin-bottom: 3px;
 }
 
 .typing-row.show { opacity: 1; }
 
 .typing-bubble {
   background: #1c1c1e;
-  border-radius: 22px;
+  border-radius: 20px;
   border-bottom-left-radius: 5px;
-  padding: 12px 16px;
+  padding: 11px 15px;
   display: flex;
   gap: 5px;
   align-items: center;
