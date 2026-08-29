@@ -20,15 +20,15 @@ const ENDING_LINES = [
 ];
 
 /*
-  Avatar SVG: viewBox 0 0 100 130 (lebih tinggi dari lingkaran)
-  - Lingkaran avatar = 100x100 di layar, tapi SVG punya viewBox 100x130
-  - Kepala: cx=50 cy=44 r=26 → besar, benar-benar di tengah area atas
-  - Badan: cx=50 cy=118 rx=40 ry=34 → hanya ujung atasnya yang kelihatan
-    di bagian bawah lingkaran (karena overflow:hidden memotong)
+  viewBox="0 0 100 100" — sama dengan kotak lingkaran
+  Kepala: cx=50 cy=50 r=24 — tepat di tengah lingkaran
+  Badan: cx=50 cy=108 rx=44 ry=40 — besar & tinggi,
+         hanya bagian paling atas (busur) yang muncul
+         di bawah lingkaran karena overflow:hidden
 */
-const AVATAR_SVG = `<svg viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-  <circle cx="50" cy="44" r="26" fill="#fff" opacity="0.92"/>
-  <ellipse cx="50" cy="118" rx="40" ry="34" fill="#fff" opacity="0.92"/>
+const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="50" r="24" fill="#fff" opacity="0.92"/>
+  <ellipse cx="50" cy="108" rx="44" ry="40" fill="#fff" opacity="0.92"/>
 </svg>`;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -56,20 +56,15 @@ async function dayTransition(label) {
   const dayLabel = document.getElementById('dayLabel');
   dayLabel.textContent = label;
   dayLabel.style.opacity = '0';
-
   dayScreen.classList.add('visible');
   await sleep(1000);
-
   dayLabel.style.transition = 'opacity 0.9s ease';
   dayLabel.style.opacity = '1';
   await sleep(2200);
-
   dayLabel.style.opacity = '0';
   await sleep(900);
-
   dayScreen.classList.remove('visible');
   await sleep(1000);
-
   addTsInChat(label);
   await sleep(400);
 }
@@ -96,20 +91,16 @@ let lastSide = null;
 
 async function addBubble(side, text, unsent = false) {
   if (side === 'him') await showTyping(Math.min(900 + text.length * 26, 2200));
-
   const row = document.createElement('div');
   row.className = `row ${side}`;
   if (lastSide && lastSide !== side) row.classList.add('gap-top');
   lastSide = side;
-
   if (side === 'him') row.appendChild(makeAvatar());
-
   const bub = document.createElement('div');
   bub.className = 'bubble';
   bub.textContent = text;
   if (unsent) bub.style.opacity = '0.38';
   row.appendChild(bub);
-
   chat.appendChild(row);
   scrollEnd();
   await sleep(30);
@@ -196,33 +187,14 @@ async function run() {
         await dayTransition(msg.text);
         await sleep(300);
         break;
-      case 'him':
-        await addBubble('him', msg.text);
-        await sleep(480);
-        break;
-      case 'me':
-        await addBubble('me', msg.text);
-        await sleep(380);
-        break;
-      case 'me-unsent':
-        await addBubble('me', msg.text, true);
-        await sleep(380);
-        break;
-      case 'seen':
-        await addSeen();
-        break;
-      case 'typing-gone':
-        await typingGone();
-        break;
-      case 'system':
-        await addSystem(msg.text);
-        break;
-      case 'not-delivered':
-        await addNotDelivered();
-        break;
-      case 'ending':
-        await showEnding();
-        break;
+      case 'him':  await addBubble('him', msg.text); await sleep(480); break;
+      case 'me':   await addBubble('me', msg.text);  await sleep(380); break;
+      case 'me-unsent': await addBubble('me', msg.text, true); await sleep(380); break;
+      case 'seen': await addSeen(); break;
+      case 'typing-gone': await typingGone(); break;
+      case 'system': await addSystem(msg.text); break;
+      case 'not-delivered': await addNotDelivered(); break;
+      case 'ending': await showEnding(); break;
     }
   }
 }
