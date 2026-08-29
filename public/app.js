@@ -1,164 +1,204 @@
-const chatArea = document.getElementById('chatArea');
-const endingScreen = document.createElement('div');
-endingScreen.className = 'ending-screen';
-document.getElementById('app').appendChild(endingScreen);
+const chat = document.getElementById('chat');
+const ending = document.getElementById('ending');
+const endingInner = document.getElementById('endingInner');
 
-const endingLines = [
-  { text: 'He came to me first.', cls: '' },
-  { text: 'He asked to know me.', cls: '' },
+const ENDING_LINES = [
+  { text: 'He came to me first.',            cls: 'accent' },
+  { text: 'He asked to know me.',             cls: 'accent' },
   { text: 'He kissed me like I was worth staying for.', cls: '' },
-  { text: 'Then he left —', cls: '' },
-  { text: 'without a goodbye,', cls: '' },
-  { text: 'without an explanation,', cls: '' },
-  { text: 'without even a proper ending.', cls: '' },
-  { text: 'And somehow, I\'m still here.', cls: 'white' },
-  { text: 'Still wondering if I was the problem.', cls: 'white' },
-  { text: 'I wasn\'t.', cls: 'white' },
+  { text: 'Then he left.',                    cls: '' },
+  { text: 'No goodbye.',                      cls: '' },
+  { text: 'No explanation.',                  cls: '' },
+  { text: 'No proper ending.',                cls: '' },
+  { text: 'And somehow — I\'m still here.',   cls: 'bright' },
+  { text: 'I wasn\'t the problem.',           cls: 'bright' },
 ];
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function scrollEnd() {
+  chat.scrollTop = chat.scrollHeight;
 }
 
-function scrollToBottom() {
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-function addTimestamp(text) {
+// ── TIMESTAMP ──
+function addTs(text) {
   const el = document.createElement('div');
-  el.className = 'timestamp';
+  el.className = 'ts';
   el.textContent = text;
-  chatArea.appendChild(el);
-  scrollToBottom();
+  chat.appendChild(el);
+  scrollEnd();
 }
 
-async function addBubble(type, text) {
-  if (type === 'him') {
-    const typingWrapper = document.createElement('div');
-    typingWrapper.className = 'typing-wrapper';
-    typingWrapper.innerHTML = `<div class="typing-bubble"><span></span><span></span><span></span></div>`;
-    chatArea.appendChild(typingWrapper);
-    scrollToBottom();
-    await sleep(50);
-    typingWrapper.classList.add('visible');
-    const typingDelay = Math.min(800 + text.length * 30, 2200);
-    await sleep(typingDelay);
-    typingWrapper.remove();
+// ── TYPING INDICATOR ──
+async function showTyping(duration = 1600) {
+  const row = document.createElement('div');
+  row.className = 'typing-row';
+
+  const av = document.createElement('div');
+  av.className = 'row-avatar';
+  av.textContent = 'M';
+
+  const bub = document.createElement('div');
+  bub.className = 'typing-bubble';
+  bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+  row.appendChild(av);
+  row.appendChild(bub);
+  chat.appendChild(row);
+  scrollEnd();
+
+  await sleep(40);
+  row.classList.add('show');
+  await sleep(duration);
+  row.classList.remove('show');
+  await sleep(280);
+  row.remove();
+}
+
+// ── ADD BUBBLE ──
+async function addBubble(side, text, unsent = false) {
+  if (side === 'him') await showTyping(Math.min(900 + text.length * 28, 2400));
+
+  const row = document.createElement('div');
+  row.className = `row ${side}`;
+
+  if (side === 'him') {
+    const av = document.createElement('div');
+    av.className = 'row-avatar';
+    av.textContent = 'M';
+    row.appendChild(av);
   }
 
-  const wrapper = document.createElement('div');
-  wrapper.className = `bubble-wrapper ${type === 'me' || type === 'me-unsent' ? 'me' : 'him'}`;
+  const bub = document.createElement('div');
+  bub.className = 'bubble';
+  bub.textContent = text;
+  if (unsent) bub.style.opacity = '0.38';
+  row.appendChild(bub);
 
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.textContent = text;
-  if (type === 'me-unsent') bubble.style.opacity = '0.4';
-
-  wrapper.appendChild(bubble);
-  chatArea.appendChild(wrapper);
-  scrollToBottom();
-  await sleep(50);
-  wrapper.classList.add('visible');
-  await sleep(type === 'him' ? 400 : 300);
+  chat.appendChild(row);
+  scrollEnd();
+  await sleep(30);
+  row.classList.add('show');
+  await sleep(side === 'him' ? 380 : 260);
 }
 
-async function addSeen(text, noReply = false) {
+// ── SEEN ──
+async function addSeen() {
   const el = document.createElement('div');
-  el.className = `read-receipt ${noReply ? 'seen-no-reply' : ''}`;
-  el.textContent = text;
-  chatArea.appendChild(el);
-  scrollToBottom();
-  await sleep(1200);
+  el.className = 'receipt';
+  el.textContent = 'Seen';
+  chat.appendChild(el);
+  scrollEnd();
+  await sleep(40);
+  el.classList.add('show');
+  await sleep(1400);
 }
 
-async function addTypingThenGone() {
-  const typingWrapper = document.createElement('div');
-  typingWrapper.className = 'typing-wrapper';
-  typingWrapper.innerHTML = `<div class="typing-bubble"><span></span><span></span><span></span></div>`;
-  chatArea.appendChild(typingWrapper);
-  scrollToBottom();
-  await sleep(80);
-  typingWrapper.classList.add('visible');
-  await sleep(2500);
-  typingWrapper.classList.remove('visible');
-  await sleep(400);
-  typingWrapper.remove();
-  await sleep(1000);
-}
-
+// ── SYSTEM NOTICE ──
 async function addSystem(text) {
   const el = document.createElement('div');
-  el.className = 'system-notice';
+  el.className = 'system';
   el.innerHTML = text.replace('\n', '<br>');
-  chatArea.appendChild(el);
-  scrollToBottom();
-  await sleep(100);
-  el.classList.add('visible');
-  await sleep(2000);
+  chat.appendChild(el);
+  scrollEnd();
+  await sleep(40);
+  el.classList.add('show');
+  await sleep(2200);
 }
 
-async function addNotDelivered(text) {
+// ── NOT DELIVERED ──
+async function addNotDelivered() {
   const el = document.createElement('div');
-  el.className = 'read-receipt seen-no-reply';
-  el.style.textAlign = 'right';
-  el.style.paddingRight = '8px';
-  el.textContent = text;
-  chatArea.appendChild(el);
-  scrollToBottom();
+  el.className = 'not-delivered';
+  el.textContent = 'Not delivered';
+  chat.appendChild(el);
+  scrollEnd();
+  await sleep(40);
+  el.classList.add('show');
   await sleep(2000);
 }
 
+// ── TYPING THEN GONE ──
+async function typingGone() {
+  const row = document.createElement('div');
+  row.className = 'typing-row';
+
+  const av = document.createElement('div');
+  av.className = 'row-avatar';
+  av.textContent = 'M';
+
+  const bub = document.createElement('div');
+  bub.className = 'typing-bubble';
+  bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+  row.appendChild(av);
+  row.appendChild(bub);
+  chat.appendChild(row);
+  scrollEnd();
+
+  await sleep(40);
+  row.classList.add('show');
+  await sleep(3000);
+  row.classList.remove('show');
+  await sleep(300);
+  row.remove();
+  await sleep(900);
+}
+
+// ── ENDING ──
 async function showEnding() {
-  endingScreen.classList.add('visible');
-  for (const line of endingLines) {
+  await sleep(1800);
+  ending.classList.add('show');
+  await sleep(600);
+  for (const line of ENDING_LINES) {
     const el = document.createElement('div');
     el.className = `ending-line ${line.cls}`;
     el.textContent = line.text;
-    endingScreen.appendChild(el);
-    await sleep(100);
-    el.classList.add('visible');
-    await sleep(1400);
+    endingInner.appendChild(el);
+    await sleep(80);
+    el.classList.add('show');
+    await sleep(1600);
   }
 }
 
-async function runStory() {
-  await sleep(800);
-  for (const msg of messages) {
-    switch (msg.type) {
-      case 'timestamp':
-        addTimestamp(msg.text);
-        await sleep(600);
+// ── MAIN ──
+async function run() {
+  await sleep(700);
+  for (const msg of MESSAGES) {
+    switch (msg.t) {
+      case 'ts':
+        addTs(msg.text);
+        await sleep(500);
         break;
       case 'him':
         await addBubble('him', msg.text);
-        await sleep(600);
+        await sleep(520);
         break;
       case 'me':
         await addBubble('me', msg.text);
-        await sleep(500);
+        await sleep(420);
         break;
       case 'me-unsent':
-        await addBubble('me-unsent', msg.text);
-        await sleep(500);
+        await addBubble('me', msg.text, true);
+        await sleep(400);
         break;
       case 'seen':
-        await addSeen(msg.text, true);
+        await addSeen();
         break;
-      case 'typing-then-gone':
-        await addTypingThenGone();
+      case 'typing-gone':
+        await typingGone();
         break;
       case 'system':
         await addSystem(msg.text);
         break;
       case 'not-delivered':
-        await addNotDelivered(msg.text);
+        await addNotDelivered();
         break;
       case 'ending':
-        await sleep(1500);
         await showEnding();
         break;
     }
   }
 }
 
-runStory();
+run();
