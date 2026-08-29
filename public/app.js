@@ -37,7 +37,6 @@ function addTsInChat(label) {
   el.className = 'ts'; el.textContent = label;
   chat.appendChild(el); scrollEnd();
 }
-
 async function dayTransition(label) {
   const dayLabel = document.getElementById('dayLabel');
   dayLabel.textContent = label; dayLabel.style.opacity = '0';
@@ -49,7 +48,6 @@ async function dayTransition(label) {
   dayScreen.classList.remove('visible'); await sleep(1000);
   addTsInChat(label); await sleep(400);
 }
-
 async function showTyping(duration) {
   const row = document.createElement('div'); row.className = 'typing-row';
   row.appendChild(makeAvatar());
@@ -60,7 +58,6 @@ async function showTyping(duration) {
   await sleep(duration);
   row.classList.remove('show'); await sleep(260); row.remove();
 }
-
 let lastSide = null;
 async function addBubble(side, text, unsent = false) {
   if (side === 'him') await showTyping(Math.min(900 + text.length * 26, 2200));
@@ -76,7 +73,6 @@ async function addBubble(side, text, unsent = false) {
   await sleep(30); row.classList.add('show');
   await sleep(side === 'him' ? 360 : 240);
 }
-
 async function addSeen() {
   const el = document.createElement('div'); el.className = 'receipt'; el.textContent = 'Seen';
   chat.appendChild(el); scrollEnd();
@@ -104,7 +100,7 @@ async function typingGone() {
   row.classList.remove('show'); await sleep(300); row.remove(); await sleep(900);
 }
 
-// ── DIALOG ──
+// DIALOG
 function showDialog(title, msg, buttons) {
   return new Promise(resolve => {
     const backdrop = document.createElement('div');
@@ -118,8 +114,7 @@ function showDialog(title, msg, buttons) {
       <div class="dialog-actions">
         ${buttons.map((b,i) => `<button class="dialog-btn ${b.cls||''}" data-i="${i}">${b.label}</button>`).join('')}
       </div>`;
-    backdrop.appendChild(dialog);
-    document.body.appendChild(backdrop);
+    backdrop.appendChild(dialog); document.body.appendChild(backdrop);
     requestAnimationFrame(() => backdrop.classList.add('show'));
     backdrop.querySelectorAll('.dialog-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -129,7 +124,6 @@ function showDialog(title, msg, buttons) {
     });
   });
 }
-
 async function deleteFeelingSequence() {
   let chose_delete = true;
   while (chose_delete) {
@@ -150,7 +144,7 @@ async function deleteFeelingSequence() {
   }
 }
 
-// ── MUSIC NOTIF ──
+// MUSIC NOTIF
 function showMusicNotif() {
   return new Promise(resolve => {
     const notif = document.createElement('div');
@@ -176,10 +170,10 @@ function showMusicNotif() {
   });
 }
 
-// ── INLINE MUSIC PLAYER ──
+// INLINE MUSIC PLAYER
 function openPlayer() {
-  const TOTAL = 4 * 60 + 52;  // 292s
-  const START = 2 * 60 + 46;  // 166s
+  const TOTAL = 4 * 60 + 52;
+  const START = 2 * 60 + 46;
   let current = START;
   let isPlaying = true;
   let timer = null;
@@ -191,6 +185,20 @@ function openPlayer() {
 
   const sheet = document.createElement('div');
   sheet.className = 'music-player-sheet';
+
+  // SVG icons — matching Apple Music exactly
+  const ICO_PREV   = `<svg width="44" height="44" viewBox="0 0 44 44" fill="white"><polygon points="22,8 6,22 22,36"/><rect x="26" y="8" width="6" height="28" rx="2"/></svg>`;
+  const ICO_PAUSE  = `<svg width="52" height="52" viewBox="0 0 52 52" fill="white"><rect x="12" y="10" width="10" height="32" rx="3"/><rect x="30" y="10" width="10" height="32" rx="3"/></svg>`;
+  const ICO_PLAY   = `<svg width="52" height="52" viewBox="0 0 52 52" fill="white"><polygon points="14,8 42,26 14,44"/></svg>`;
+  const ICO_NEXT   = `<svg width="44" height="44" viewBox="0 0 44 44" fill="white"><polygon points="22,8 38,22 22,36"/><rect x="12" y="8" width="6" height="28" rx="2"/></svg>`;
+  const ICO_STAR   = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  const ICO_MORE   = `<svg width="22" height="22" viewBox="0 0 24 24" fill="#c0c0c0"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>`;
+  const ICO_VOL_LO = `<svg width="20" height="20" viewBox="0 0 24 24" fill="#8e8e93"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>`;
+  const ICO_VOL_HI = `<svg width="20" height="20" viewBox="0 0 24 24" fill="#8e8e93"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#8e8e93" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="#8e8e93" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+  const ICO_LYRICS = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+  const ICO_AIR    = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"/><polygon points="12 15 17 21 7 21 12 15"/></svg>`;
+  const ICO_QUEUE  = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6" stroke-width="2.5"/><line x1="3" y1="12" x2="3.01" y2="12" stroke-width="2.5"/><line x1="3" y1="18" x2="3.01" y2="18" stroke-width="2.5"/></svg>`;
+
   sheet.innerHTML = `
     <div class="mp-inner">
       <div class="mp-handle"></div>
@@ -203,97 +211,78 @@ function openPlayer() {
           <div class="mp-artist">Billie Eilish</div>
         </div>
         <div class="mp-info-btns">
-          <button class="mp-icon-btn">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </button>
-          <button class="mp-icon-btn">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-          </button>
+          <button class="mp-icon-btn">${ICO_STAR}</button>
+          <button class="mp-icon-btn">${ICO_MORE}</button>
         </div>
       </div>
       <div class="mp-progress-wrap">
         <div class="mp-bar-bg"><div class="mp-bar-fill" id="mpFill"></div></div>
         <div class="mp-times">
           <span id="mpCurrent">2:46</span>
-          <span class="mp-dolby">&#xd◉ Dolby Atmos</span>
           <span id="mpRemain">-2:06</span>
         </div>
       </div>
       <div class="mp-controls">
-        <button class="mp-ctrl">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="3" height="16" rx="1"/></svg>
-        </button>
-        <button class="mp-ctrl mp-play" id="mpPlay">
-          <svg id="mpPlayIcon" width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="6" y="4" width="4" height="16" rx="1"/>
-            <rect x="14" y="4" width="4" height="16" rx="1"/>
-          </svg>
-        </button>
-        <button class="mp-ctrl">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="16" y="4" width="3" height="16" rx="1"/></svg>
-        </button>
+        <button class="mp-ctrl" id="mpPrev">${ICO_PREV}</button>
+        <button class="mp-ctrl" id="mpPlay">${ICO_PAUSE}</button>
+        <button class="mp-ctrl" id="mpNext">${ICO_NEXT}</button>
       </div>
       <div class="mp-volume">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="#8e8e93"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
+        ${ICO_VOL_LO}
         <div class="mp-vol-bg"><div class="mp-vol-fill"></div></div>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="#8e8e93"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#8e8e93" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="#8e8e93" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        ${ICO_VOL_HI}
       </div>
       <div class="mp-bottom">
-        <button class="mp-icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
-        <button class="mp-icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"/><polygon points="12 15 17 21 7 21 12 15"/></svg></button>
-        <button class="mp-icon-btn" style="position:relative">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          <span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fc3c44;border-radius:50%;"></span>
-        </button>
-        <button class="mp-icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+        <button class="mp-bottom-btn">${ICO_LYRICS}</button>
+        <button class="mp-bottom-btn">${ICO_AIR}</button>
+        <button class="mp-bottom-btn">${ICO_QUEUE}</button>
       </div>
     </div>`;
 
   document.body.appendChild(sheet);
   requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('open')));
 
-  const fillEl = sheet.querySelector('#mpFill');
-  const currentEl = sheet.querySelector('#mpCurrent');
-  const remainEl = sheet.querySelector('#mpRemain');
-  const playBtn2 = sheet.querySelector('#mpPlay');
-  const playIconEl = sheet.querySelector('#mpPlayIcon');
+  const fillEl   = sheet.querySelector('#mpFill');
+  const curEl    = sheet.querySelector('#mpCurrent');
+  const remEl    = sheet.querySelector('#mpRemain');
+  const playBtn  = sheet.querySelector('#mpPlay');
 
   function updateBar() {
-    const pct = (current / TOTAL) * 100;
-    fillEl.style.width = pct + '%';
-    currentEl.textContent = fmt(current);
-    remainEl.textContent = '-' + fmt(TOTAL - current);
+    fillEl.style.width = (current / TOTAL * 100) + '%';
+    curEl.textContent = fmt(current);
+    remEl.textContent = '-' + fmt(TOTAL - current);
   }
-
   function tick() {
     if (!isPlaying) return;
-    current += 1;
-    if (current >= TOTAL) { current = TOTAL; isPlaying = false; clearInterval(timer); }
+    current = Math.min(current + 1, TOTAL);
+    if (current >= TOTAL) { isPlaying = false; clearInterval(timer); playBtn.innerHTML = ICO_PLAY; }
     updateBar();
   }
 
   updateBar();
+  // disable transition for first render
+  fillEl.style.transition = 'none';
+  requestAnimationFrame(() => { fillEl.style.transition = 'width 1s linear'; });
   timer = setInterval(tick, 1000);
 
-  playBtn2.addEventListener('click', () => {
+  playBtn.addEventListener('click', () => {
     isPlaying = !isPlaying;
     if (isPlaying) {
       timer = setInterval(tick, 1000);
-      playIconEl.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+      playBtn.innerHTML = ICO_PAUSE;
     } else {
       clearInterval(timer);
-      playIconEl.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      playBtn.innerHTML = ICO_PLAY;
     }
   });
 }
 
-// ── POST ENDING ──
+// POST ENDING
 async function postEnding() {
   await sleep(1400);
   await deleteFeelingSequence();
   await sleep(700);
   await showMusicNotif();
-  // openPlayer is called immediately after notif dismissed
   openPlayer();
 }
 
@@ -302,9 +291,7 @@ async function run() {
   await sleep(700);
   for (const msg of MESSAGES) {
     switch (msg.t) {
-      case 'ts':
-        lastSide = null; await sleep(1800);
-        await dayTransition(msg.text); await sleep(300); break;
+      case 'ts': lastSide = null; await sleep(1800); await dayTransition(msg.text); await sleep(300); break;
       case 'him':         await addBubble('him', msg.text); await sleep(480); break;
       case 'me':          await addBubble('me', msg.text);  await sleep(380); break;
       case 'me-unsent':   await addBubble('me', msg.text, true); await sleep(380); break;
@@ -316,5 +303,4 @@ async function run() {
     }
   }
 }
-
 run();
