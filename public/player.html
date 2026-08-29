@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Apple Music</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      background: #1a1a1a;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .player {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 28px;
+      padding-top: max(14px, env(safe-area-inset-top));
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+      background: #1c1c1c;
+    }
+
+    /* Handle bar */
+    .handle {
+      width: 36px; height: 5px;
+      background: #4a4a4a; border-radius: 3px;
+      margin: 0 auto 20px;
+      flex-shrink: 0;
+    }
+
+    /* Album cover */
+    .cover-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      margin-bottom: 28px;
+    }
+
+    .cover {
+      width: 100%;
+      max-width: 340px;
+      aspect-ratio: 1;
+      border-radius: 14px;
+      object-fit: cover;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    }
+
+    /* Song info */
+    .info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    .info-text { flex: 1; min-width: 0; }
+    .song-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .song-artist {
+      font-size: 17px;
+      color: #8e8e93;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .info-actions {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+    .info-actions button {
+      background: none; border: none; cursor: pointer;
+      color: #8e8e93; padding: 4px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      margin-bottom: 6px;
+      flex-shrink: 0;
+    }
+    .progress-bar-bg {
+      height: 4px;
+      background: #3a3a3a;
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #fff;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 1s linear;
+    }
+    .progress-times {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+    .progress-times span {
+      font-size: 12px;
+      color: #8e8e93;
+    }
+    .dolby {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #8e8e93;
+    }
+    .dolby-logo {
+      width: 28px; height: 12px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 18px 0 22px;
+      flex-shrink: 0;
+    }
+    .ctrl-btn {
+      background: none; border: none;
+      color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      padding: 8px;
+    }
+    .ctrl-btn.play {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      padding: 0;
+    }
+
+    /* Volume */
+    .volume-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    .volume-wrap svg { flex-shrink: 0; color: #8e8e93; }
+    .volume-bar-bg {
+      flex: 1;
+      height: 4px;
+      background: #3a3a3a;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .volume-bar-fill {
+      height: 100%;
+      background: #8e8e93;
+      border-radius: 2px;
+      width: 80%;
+    }
+
+    /* Bottom bar */
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .bottom-bar button {
+      background: none; border: none;
+      color: #8e8e93; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      padding: 6px;
+    }
+    .repeat-badge {
+      position: relative;
+    }
+    .repeat-dot {
+      position: absolute;
+      top: -2px; right: -2px;
+      width: 6px; height: 6px;
+      background: #fc3c44;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <div class="player">
+    <div class="handle"></div>
+
+    <div class="cover-wrap">
+      <img class="cover" src="coveralbum.jpg" alt="Album Cover" />
+    </div>
+
+    <div class="info">
+      <div class="info-text">
+        <div class="song-title">i love you</div>
+        <div class="song-artist">Billie Eilish</div>
+      </div>
+      <div class="info-actions">
+        <button aria-label="Favorite">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </button>
+        <button aria-label="More">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-times">
+        <span id="currentTime">2:46</span>
+        <span class="dolby">
+          <!-- Dolby Atmos logo approximation -->
+          <svg class="dolby-logo" viewBox="0 0 40 16" fill="none">
+            <rect x="0" y="4" width="8" height="8" rx="1" fill="#8e8e93"/>
+            <rect x="10" y="0" width="8" height="16" rx="1" fill="#8e8e93"/>
+            <text x="21" y="12" font-size="9" fill="#8e8e93" font-family="-apple-system,sans-serif">Atmos</text>
+          </svg>
+        </span>
+        <span id="remainTime">-2:06</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="ctrl-btn" aria-label="Previous">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="ctrl-btn play" id="playBtn" aria-label="Pause">
+        <svg id="playIcon" width="38" height="38" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="4" width="4" height="16" rx="1"/>
+          <rect x="14" y="4" width="4" height="16" rx="1"/>
+        </svg>
+      </button>
+      <button class="ctrl-btn" aria-label="Next">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Volume -->
+    <div class="volume-wrap">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      </svg>
+      <div class="volume-bar-bg"><div class="volume-bar-fill"></div></div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="bottom-bar">
+      <button aria-label="Lyrics">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+      <button aria-label="AirPlay">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"/>
+          <polygon points="12 15 17 21 7 21 12 15"/>
+        </svg>
+      </button>
+      <button class="repeat-badge" aria-label="Repeat">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <polyline points="17 1 21 5 17 9"/>
+          <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+          <polyline points="7 23 3 19 7 15"/>
+          <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+        </svg>
+        <div class="repeat-dot"></div>
+      </button>
+      <button aria-label="Queue">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <line x1="8" y1="6" x2="21" y2="6"/>
+          <line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/>
+          <line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <audio id="audio" src="backsound.mp3" preload="auto"></audio>
+
+  <script>
+    const TOTAL = 4 * 60 + 52; // 4:52 = 292 seconds
+    const START = 2 * 60 + 46; // start at 2:46 = 166 seconds
+
+    const audio = document.getElementById('audio');
+    const fill = document.getElementById('progressFill');
+    const currentTimeEl = document.getElementById('currentTime');
+    const remainTimeEl = document.getElementById('remainTime');
+    const playBtn = document.getElementById('playBtn');
+    const playIcon = document.getElementById('playIcon');
+
+    let playing = true;
+
+    function fmt(s) {
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${m}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function updateUI(t) {
+      const pct = (t / TOTAL) * 100;
+      fill.style.width = pct + '%';
+      currentTimeEl.textContent = fmt(t);
+      remainTimeEl.textContent = '-' + fmt(TOTAL - t);
+    }
+
+    // Seek audio to 2:46 on load
+    audio.addEventListener('canplay', () => {
+      audio.currentTime = START;
+      audio.play().catch(() => {});
+    }, { once: true });
+
+    audio.addEventListener('timeupdate', () => {
+      updateUI(audio.currentTime);
+    });
+
+    audio.addEventListener('ended', () => {
+      playing = false;
+      playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+    });
+
+    // Play/pause toggle
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        playing = true;
+        playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+      } else {
+        audio.pause();
+        playing = false;
+        playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      }
+    });
+
+    // Init display
+    updateUI(START);
+    fill.style.transition = 'none';
+  </script>
+</body>
+</html>

@@ -7,6 +7,21 @@ dayScreen.id = 'dayScreen';
 dayScreen.innerHTML = '<div id="dayLabel"></div>';
 document.getElementById('app').appendChild(dayScreen);
 
+// Background audio — starts on first user interaction
+const bgAudio = new Audio('backsound.mp3');
+bgAudio.volume = 0.18;
+bgAudio.loop = false;
+let audioStarted = false;
+function startAudio() {
+  if (audioStarted) return;
+  audioStarted = true;
+  bgAudio.play().catch(() => {});
+  document.removeEventListener('touchstart', startAudio);
+  document.removeEventListener('click', startAudio);
+}
+document.addEventListener('touchstart', startAudio, { once: true });
+document.addEventListener('click', startAudio, { once: true });
+
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <circle cx="50" cy="50" r="24" fill="#fff" opacity="0.92"/>
   <ellipse cx="50" cy="108" rx="44" ry="40" fill="#fff" opacity="0.92"/>
@@ -84,56 +99,33 @@ async function addBubble(side, text, unsent = false) {
 }
 
 async function addSeen() {
-  const el = document.createElement('div');
-  el.className = 'receipt';
-  el.textContent = 'Seen';
-  chat.appendChild(el);
-  scrollEnd();
-  await sleep(40);
-  el.classList.add('show');
-  await sleep(1400);
+  const el = document.createElement('div'); el.className = 'receipt'; el.textContent = 'Seen';
+  chat.appendChild(el); scrollEnd();
+  await sleep(40); el.classList.add('show'); await sleep(1400);
 }
 async function addSystem(text) {
   lastSide = null;
-  const el = document.createElement('div');
-  el.className = 'system';
+  const el = document.createElement('div'); el.className = 'system';
   el.innerHTML = text.replace('\n', '<br>');
-  chat.appendChild(el);
-  scrollEnd();
-  await sleep(40);
-  el.classList.add('show');
-  await sleep(2200);
+  chat.appendChild(el); scrollEnd();
+  await sleep(40); el.classList.add('show'); await sleep(2200);
 }
 async function addNotDelivered() {
-  const el = document.createElement('div');
-  el.className = 'not-delivered';
-  el.textContent = 'Not delivered';
-  chat.appendChild(el);
-  scrollEnd();
-  await sleep(40);
-  el.classList.add('show');
-  await sleep(2000);
+  const el = document.createElement('div'); el.className = 'not-delivered'; el.textContent = 'Not delivered';
+  chat.appendChild(el); scrollEnd();
+  await sleep(40); el.classList.add('show'); await sleep(2000);
 }
 async function typingGone() {
-  const row = document.createElement('div');
-  row.className = 'typing-row';
+  const row = document.createElement('div'); row.className = 'typing-row';
   row.appendChild(makeAvatar());
-  const bub = document.createElement('div');
-  bub.className = 'typing-bubble';
+  const bub = document.createElement('div'); bub.className = 'typing-bubble';
   bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-  row.appendChild(bub);
-  chat.appendChild(row);
-  scrollEnd();
-  await sleep(40);
-  row.classList.add('show');
-  await sleep(3000);
-  row.classList.remove('show');
-  await sleep(300);
-  row.remove();
-  await sleep(900);
+  row.appendChild(bub); chat.appendChild(row); scrollEnd();
+  await sleep(40); row.classList.add('show'); await sleep(3000);
+  row.classList.remove('show'); await sleep(300); row.remove(); await sleep(900);
 }
 
-// ── DIALOG HELPER ──
+// ── DIALOG ──
 function showDialog(title, msg, buttons) {
   return new Promise(resolve => {
     const backdrop = document.createElement('div');
@@ -160,23 +152,17 @@ function showDialog(title, msg, buttons) {
   });
 }
 
-// ── DELETE FEELINGS: hanya bisa Keep ──
 async function deleteFeelingSequence() {
   let chose_delete = true;
   while (chose_delete) {
     const choice = await showDialog(
       'Delete Feelings',
       'Are you sure you want to delete everything you felt?',
-      [
-        { label: 'Keep',   cls: 'bold' },
-        { label: 'Delete', cls: 'destructive' }
-      ]
+      [{ label: 'Keep', cls: 'bold' }, { label: 'Delete', cls: 'destructive' }]
     );
     if (choice === 0) {
-      // Kept — exit loop
       chose_delete = false;
     } else {
-      // Tried to delete — show error, loop back
       await showDialog(
         'Cannot Delete',
         'These feelings cannot be deleted. They happened. They were real.',
@@ -186,7 +172,7 @@ async function deleteFeelingSequence() {
   }
 }
 
-// ── APPLE MUSIC NOTIFICATION ──
+// ── MUSIC NOTIF ──
 function showMusicNotif() {
   return new Promise(resolve => {
     const notif = document.createElement('div');
@@ -204,6 +190,7 @@ function showMusicNotif() {
     document.body.appendChild(notif);
     requestAnimationFrame(() => requestAnimationFrame(() => notif.classList.add('show')));
     notif.querySelector('.music-notif-open').addEventListener('click', () => {
+      // Slide notif away
       notif.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
       notif.style.opacity = '0';
       notif.style.transform = 'translateX(-50%) translateY(-120%)';
@@ -212,12 +199,35 @@ function showMusicNotif() {
   });
 }
 
-// ── POST-ENDING (tanpa ending overlay, langsung di atas chat) ──
+// ── OPEN PLAYER PAGE (slide up animation) ──
+function openPlayer() {
+  // Stop bg audio
+  bgAudio.pause();
+
+  const sheet = document.createElement('div');
+  sheet.style.cssText = `
+    position: fixed; inset: 0; z-index: 400;
+    transform: translateY(100%);
+    transition: transform 0.5s cubic-bezier(0.32,0.72,0,1);
+  `;
+  const iframe = document.createElement('iframe');
+  iframe.src = 'player.html';
+  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+  sheet.appendChild(iframe);
+  document.body.appendChild(sheet);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    sheet.style.transform = 'translateY(0)';
+  }));
+}
+
+// ── POST ENDING ──
 async function postEnding() {
   await sleep(1400);
   await deleteFeelingSequence();
   await sleep(700);
   await showMusicNotif();
+  await sleep(300);
+  openPlayer();
 }
 
 async function run() {
