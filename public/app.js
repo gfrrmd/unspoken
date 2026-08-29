@@ -19,31 +19,19 @@ const ENDING_LINES = [
   { text: "I wasn't the problem.",                     cls: 'bright' },
 ];
 
-/*
-  viewBox="0 0 100 100" — sama dengan kotak lingkaran
-  Kepala: cx=50 cy=50 r=24 — tepat di tengah lingkaran
-  Badan: cx=50 cy=108 rx=44 ry=40 — besar & tinggi,
-         hanya bagian paling atas (busur) yang muncul
-         di bawah lingkaran karena overflow:hidden
-*/
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <circle cx="50" cy="50" r="24" fill="#fff" opacity="0.92"/>
   <ellipse cx="50" cy="108" rx="44" ry="40" fill="#fff" opacity="0.92"/>
 </svg>`;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-function scrollEnd() {
-  chat.scrollTop = chat.scrollHeight;
-}
-
+function scrollEnd() { chat.scrollTop = chat.scrollHeight; }
 function makeAvatar() {
   const el = document.createElement('div');
   el.className = 'row-avatar';
   el.innerHTML = AVATAR_SVG;
   return el;
 }
-
 function addTsInChat(label) {
   const el = document.createElement('div');
   el.className = 'ts';
@@ -88,7 +76,6 @@ async function showTyping(duration) {
 }
 
 let lastSide = null;
-
 async function addBubble(side, text, unsent = false) {
   if (side === 'him') await showTyping(Math.min(900 + text.length * 26, 2200));
   const row = document.createElement('div');
@@ -118,7 +105,6 @@ async function addSeen() {
   el.classList.add('show');
   await sleep(1400);
 }
-
 async function addSystem(text) {
   lastSide = null;
   const el = document.createElement('div');
@@ -130,7 +116,6 @@ async function addSystem(text) {
   el.classList.add('show');
   await sleep(2200);
 }
-
 async function addNotDelivered() {
   const el = document.createElement('div');
   el.className = 'not-delivered';
@@ -141,7 +126,6 @@ async function addNotDelivered() {
   el.classList.add('show');
   await sleep(2000);
 }
-
 async function typingGone() {
   const row = document.createElement('div');
   row.className = 'typing-row';
@@ -161,6 +145,84 @@ async function typingGone() {
   await sleep(900);
 }
 
+// ── DELETE FEELINGS DIALOG ──
+function showDialog(title, msg, buttons) {
+  return new Promise(resolve => {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'dialog-backdrop';
+    const dialog = document.createElement('div');
+    dialog.className = 'dialog';
+    dialog.innerHTML = `
+      <div class="dialog-body">
+        <div class="dialog-title">${title}</div>
+        <div class="dialog-msg">${msg}</div>
+      </div>
+      <div class="dialog-actions">
+        ${buttons.map((b,i) => `<button class="dialog-btn ${b.cls||''}" data-i="${i}">${b.label}</button>`).join('')}
+      </div>`;
+    backdrop.appendChild(dialog);
+    document.body.appendChild(backdrop);
+    requestAnimationFrame(() => backdrop.classList.add('show'));
+    backdrop.querySelectorAll('.dialog-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        backdrop.classList.remove('show');
+        setTimeout(() => { backdrop.remove(); resolve(+btn.dataset.i); }, 260);
+      });
+    });
+  });
+}
+
+async function deleteFeelingSequence() {
+  // First dialog: delete?
+  const choice = await showDialog(
+    'Delete Feelings',
+    'Are you sure you want to delete everything you felt?',
+    [
+      { label: 'Keep',   cls: 'bold' },
+      { label: 'Delete', cls: 'destructive' }
+    ]
+  );
+
+  if (choice === 1) {
+    // Tried to delete — can't
+    await showDialog(
+      'Cannot Delete',
+      'These feelings cannot be deleted. They happened. They were real.',
+      [{ label: 'OK', cls: 'bold' }]
+    );
+  }
+  // choice === 0 = kept, nothing happens
+}
+
+// ── APPLE MUSIC NOTIFICATION ──
+function showMusicNotif() {
+  return new Promise(resolve => {
+    const notif = document.createElement('div');
+    notif.className = 'music-notif';
+    notif.innerHTML = `
+      <div class="music-notif-icon">
+        <svg viewBox="0 0 24 24" fill="white">
+          <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+        </svg>
+      </div>
+      <div class="music-notif-content">
+        <div class="music-notif-app">Apple Music</div>
+        <div class="music-notif-title">How are you feeling?</div>
+        <div class="music-notif-sub">We found music for this moment. Play it.</div>
+      </div>
+      <button class="music-notif-open">Open</button>`;
+    document.body.appendChild(notif);
+    requestAnimationFrame(() => requestAnimationFrame(() => notif.classList.add('show')));
+    notif.querySelector('.music-notif-open').addEventListener('click', () => {
+      notif.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+      notif.style.opacity = '0';
+      notif.style.transform = 'translateX(-50%) translateY(-120%)';
+      setTimeout(() => { notif.remove(); resolve(); }, 400);
+    });
+  });
+}
+
+// ── ENDING ──
 async function showEnding() {
   await sleep(1800);
   ending.classList.add('show');
@@ -174,6 +236,16 @@ async function showEnding() {
     el.classList.add('show');
     await sleep(1600);
   }
+
+  // After all ending lines shown
+  await sleep(1200);
+
+  // Step 1: Delete feelings dialog
+  await deleteFeelingSequence();
+  await sleep(800);
+
+  // Step 2: Apple Music notification drops from top
+  await showMusicNotif();
 }
 
 async function run() {
