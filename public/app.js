@@ -2,7 +2,6 @@ const chat = document.getElementById('chat');
 const ending = document.getElementById('ending');
 const endingInner = document.getElementById('endingInner');
 
-// Day transition overlay
 const dayScreen = document.createElement('div');
 dayScreen.id = 'dayScreen';
 dayScreen.innerHTML = '<div id="dayLabel"></div>';
@@ -20,13 +19,11 @@ const ENDING_LINES = [
   { text: "I wasn't the problem.",                     cls: 'bright' },
 ];
 
-// SVG untuk avatar placeholder (sama persis dengan header)
-const AVATAR_SVG = `
-  <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="40" cy="30" r="18" fill="#fff" opacity="0.85"/>
-    <ellipse cx="40" cy="72" rx="30" ry="22" fill="#fff" opacity="0.85"/>
-  </svg>
-`;
+// Avatar SVG — kepala bulat di tengah, badan ellipse agak tinggi
+const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="38" r="22" fill="#fff" opacity="0.9"/>
+  <ellipse cx="50" cy="92" rx="34" ry="28" fill="#fff" opacity="0.9"/>
+</svg>`;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -34,14 +31,13 @@ function scrollEnd() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-function makeAvatar(size = 'small') {
+function makeAvatar() {
   const el = document.createElement('div');
   el.className = 'row-avatar';
   el.innerHTML = AVATAR_SVG;
   return el;
 }
 
-// ── TIMESTAMP LABEL IN CHAT ──
 function addTsInChat(label) {
   const el = document.createElement('div');
   el.className = 'ts';
@@ -50,7 +46,6 @@ function addTsInChat(label) {
   scrollEnd();
 }
 
-// ── FULL BLACK DAY TRANSITION ──
 async function dayTransition(label) {
   const dayLabel = document.getElementById('dayLabel');
   dayLabel.textContent = label;
@@ -73,19 +68,14 @@ async function dayTransition(label) {
   await sleep(400);
 }
 
-// ── TYPING INDICATOR ──
 async function showTyping(duration) {
   const row = document.createElement('div');
   row.className = 'typing-row';
-
-  // Avatar sama persis posisi & ukuran dengan bubble row
   row.appendChild(makeAvatar());
-
   const bub = document.createElement('div');
   bub.className = 'typing-bubble';
   bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
   row.appendChild(bub);
-
   chat.appendChild(row);
   scrollEnd();
   await sleep(40);
@@ -96,7 +86,6 @@ async function showTyping(duration) {
   row.remove();
 }
 
-// ── ADD BUBBLE ──
 let lastSide = null;
 
 async function addBubble(side, text, unsent = false) {
@@ -107,9 +96,7 @@ async function addBubble(side, text, unsent = false) {
   if (lastSide && lastSide !== side) row.classList.add('gap-top');
   lastSide = side;
 
-  if (side === 'him') {
-    row.appendChild(makeAvatar());
-  }
+  if (side === 'him') row.appendChild(makeAvatar());
 
   const bub = document.createElement('div');
   bub.className = 'bubble';
@@ -124,7 +111,6 @@ async function addBubble(side, text, unsent = false) {
   await sleep(side === 'him' ? 360 : 240);
 }
 
-// ── SEEN ──
 async function addSeen() {
   const el = document.createElement('div');
   el.className = 'receipt';
@@ -136,7 +122,6 @@ async function addSeen() {
   await sleep(1400);
 }
 
-// ── SYSTEM ──
 async function addSystem(text) {
   lastSide = null;
   const el = document.createElement('div');
@@ -149,7 +134,6 @@ async function addSystem(text) {
   await sleep(2200);
 }
 
-// ── NOT DELIVERED ──
 async function addNotDelivered() {
   const el = document.createElement('div');
   el.className = 'not-delivered';
@@ -161,7 +145,6 @@ async function addNotDelivered() {
   await sleep(2000);
 }
 
-// ── TYPING THEN GONE ──
 async function typingGone() {
   const row = document.createElement('div');
   row.className = 'typing-row';
@@ -181,7 +164,6 @@ async function typingGone() {
   await sleep(900);
 }
 
-// ── ENDING ──
 async function showEnding() {
   await sleep(1800);
   ending.classList.add('show');
@@ -197,7 +179,6 @@ async function showEnding() {
   }
 }
 
-// ── MAIN ──
 async function run() {
   lastSide = null;
   await sleep(700);
