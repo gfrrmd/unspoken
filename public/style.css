@@ -136,6 +136,24 @@ html, body {
 
 .chat::-webkit-scrollbar { display: none; }
 
+/* ── TIMESTAMP IN CHAT ──
+   Persis seperti Instagram DM: teks kecil abu di tengah, format "JUL 17 AT 8:41 PM"
+*/
+.ts {
+  align-self: center;
+  font-size: 12px;
+  font-weight: 400;
+  color: #8e8e93;
+  text-align: center;
+  margin: 18px 0 10px;
+  padding: 0;
+  background: none;
+  border: none;
+  letter-spacing: 0;
+  text-transform: none;
+  flex-shrink: 0;
+}
+
 /* ── FULL BLACK DAY TRANSITION SCREEN ── */
 #dayScreen {
   position: fixed;
