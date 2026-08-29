@@ -26,7 +26,16 @@ function scrollEnd() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// ── FULL BLACK DAY TRANSITION ──
+// ── TIMESTAMP LABEL IN CHAT ──
+function addTsInChat(label) {
+  const el = document.createElement('div');
+  el.className = 'ts';
+  el.textContent = label;
+  chat.appendChild(el);
+  scrollEnd();
+}
+
+// ── FULL BLACK DAY TRANSITION THEN SHOW LABEL IN CHAT ──
 async function dayTransition(label) {
   const dayLabel = document.getElementById('dayLabel');
   dayLabel.textContent = label;
@@ -34,20 +43,24 @@ async function dayTransition(label) {
 
   // Fade to full black
   dayScreen.classList.add('visible');
-  await sleep(900);
+  await sleep(1000);
 
   // Text fade in
-  dayLabel.style.transition = 'opacity 0.8s ease';
+  dayLabel.style.transition = 'opacity 0.9s ease';
   dayLabel.style.opacity = '1';
-  await sleep(1800);
+  await sleep(2200);
 
   // Text fade out
   dayLabel.style.opacity = '0';
-  await sleep(800);
+  await sleep(900);
 
   // Fade back to chat
   dayScreen.classList.remove('visible');
-  await sleep(900);
+  await sleep(1000);
+
+  // After returning to chat, show the timestamp label in chat
+  addTsInChat(label);
+  await sleep(400);
 }
 
 // ── TYPING INDICATOR ──
@@ -187,6 +200,8 @@ async function run() {
     switch (msg.t) {
       case 'ts':
         lastSide = null;
+        // Pause after last bubble before transition — feels natural
+        await sleep(1800);
         await dayTransition(msg.text);
         await sleep(300);
         break;
