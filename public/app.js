@@ -2,20 +2,21 @@ const chat = document.getElementById('chat');
 const ending = document.getElementById('ending');
 const endingInner = document.getElementById('endingInner');
 
-// Dim overlay element
-const dimOverlay = document.createElement('div');
-dimOverlay.className = 'dim-overlay';
-document.body.appendChild(dimOverlay);
+// Day transition overlay
+const dayScreen = document.createElement('div');
+dayScreen.id = 'dayScreen';
+dayScreen.innerHTML = '<div id="dayLabel"></div>';
+document.getElementById('app').appendChild(dayScreen);
 
 const ENDING_LINES = [
-  { text: 'He came to me first.',                      cls: 'accent' },
-  { text: 'He asked to know me.',                      cls: 'accent' },
+  { text: 'He came to me first.',                       cls: 'accent' },
+  { text: 'He asked to know me.',                       cls: 'accent' },
   { text: 'He kissed me like I was worth staying for.', cls: '' },
   { text: 'Then he left.',                              cls: '' },
   { text: 'No goodbye.',                               cls: '' },
   { text: 'No explanation.',                           cls: '' },
   { text: 'No proper ending.',                         cls: '' },
-  { text: "And somehow — I'm still here.",             cls: 'bright' },
+  { text: "And somehow \u2014 I'm still here.",         cls: 'bright' },
   { text: "I wasn't the problem.",                     cls: 'bright' },
 ];
 
@@ -25,31 +26,28 @@ function scrollEnd() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// ── DIM TRANSITION (layar meredup ganti hari) ──
-async function dimTransition(label) {
-  // Fade to dark
-  dimOverlay.classList.remove('dim-out');
-  dimOverlay.classList.add('dim-in');
-  await sleep(750);
+// ── FULL BLACK DAY TRANSITION ──
+async function dayTransition(label) {
+  const dayLabel = document.getElementById('dayLabel');
+  dayLabel.textContent = label;
+  dayLabel.style.opacity = '0';
 
-  // Show timestamp while dark
-  const wrap = document.createElement('div');
-  wrap.className = 'ts-wrap';
-  const ts = document.createElement('div');
-  ts.className = 'ts';
-  ts.textContent = label;
-  wrap.appendChild(ts);
-  chat.appendChild(wrap);
-  scrollEnd();
-  await sleep(60);
-  ts.classList.add('show');
+  // Fade to full black
+  dayScreen.classList.add('visible');
   await sleep(900);
 
-  // Fade back in
-  dimOverlay.classList.remove('dim-in');
-  dimOverlay.classList.add('dim-out');
-  await sleep(750);
-  dimOverlay.classList.remove('dim-out');
+  // Text fade in
+  dayLabel.style.transition = 'opacity 0.8s ease';
+  dayLabel.style.opacity = '1';
+  await sleep(1800);
+
+  // Text fade out
+  dayLabel.style.opacity = '0';
+  await sleep(800);
+
+  // Fade back to chat
+  dayScreen.classList.remove('visible');
+  await sleep(900);
 }
 
 // ── TYPING INDICATOR ──
@@ -82,8 +80,6 @@ async function addBubble(side, text, unsent = false) {
 
   const row = document.createElement('div');
   row.className = `row ${side}`;
-
-  // Gap when side switches
   if (lastSide && lastSide !== side) row.classList.add('gap-top');
   lastSide = side;
 
@@ -191,7 +187,7 @@ async function run() {
     switch (msg.t) {
       case 'ts':
         lastSide = null;
-        await dimTransition(msg.text);
+        await dayTransition(msg.text);
         await sleep(300);
         break;
       case 'him':
