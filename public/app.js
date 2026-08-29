@@ -19,10 +19,16 @@ const ENDING_LINES = [
   { text: "I wasn't the problem.",                     cls: 'bright' },
 ];
 
-// Avatar SVG — kepala bulat di tengah, badan ellipse agak tinggi
-const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="50" cy="38" r="22" fill="#fff" opacity="0.9"/>
-  <ellipse cx="50" cy="92" rx="34" ry="28" fill="#fff" opacity="0.9"/>
+/*
+  Avatar SVG: viewBox 0 0 100 130 (lebih tinggi dari lingkaran)
+  - Lingkaran avatar = 100x100 di layar, tapi SVG punya viewBox 100x130
+  - Kepala: cx=50 cy=44 r=26 → besar, benar-benar di tengah area atas
+  - Badan: cx=50 cy=118 rx=40 ry=34 → hanya ujung atasnya yang kelihatan
+    di bagian bawah lingkaran (karena overflow:hidden memotong)
+*/
+const AVATAR_SVG = `<svg viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <circle cx="50" cy="44" r="26" fill="#fff" opacity="0.92"/>
+  <ellipse cx="50" cy="118" rx="40" ry="34" fill="#fff" opacity="0.92"/>
 </svg>`;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
