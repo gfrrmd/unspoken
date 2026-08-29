@@ -170,6 +170,53 @@ function showMusicNotif() {
   });
 }
 
+// ── THOUGHT NOTIFICATIONS ──
+const THOUGHTS = [
+  { app: 'Notes',    text: 'Why did you make me feel chosen if you were going to leave anyway?' },
+  { app: 'Notes',    text: 'I keep checking your profile even though I know nothing\u2019s there.' },
+  { app: 'Notes',    text: 'I wasn\u2019t asking for much. Just honesty.' },
+  { app: 'Notes',    text: 'You were the one who started this.' },
+  { app: 'Notes',    text: 'I still don\u2019t know what I did wrong.' },
+  { app: 'Notes',    text: 'Some nights I write messages I never send.' },
+  { app: 'Notes',    text: 'I think about the version of you that was kind to me.' },
+  { app: 'Notes',    text: 'Moving on feels like a betrayal of everything I felt.' },
+  { app: 'Notes',    text: 'I\u2019m not angry anymore. I\u2019m just tired.' },
+  { app: 'Notes',    text: 'I hope you\u2019re okay. I hate that I still mean it.' },
+];
+
+// Show a single thought banner — auto-dismisses after 4s, stacks below previous
+let thoughtOffset = 0;
+function showThoughtNotif(thought) {
+  const notif = document.createElement('div');
+  notif.className = 'thought-notif';
+  notif.style.setProperty('--offset', thoughtOffset + 'px');
+  notif.innerHTML = `
+    <div class="thought-notif-icon">
+      <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M3 3h18v14H3V3zm0 14l4 4h10l4-4"/></svg>
+    </div>
+    <div class="thought-notif-body">
+      <div class="thought-notif-app">${thought.app}</div>
+      <div class="thought-notif-text">${thought.text}</div>
+    </div>`;
+  document.body.appendChild(notif);
+  requestAnimationFrame(() => requestAnimationFrame(() => notif.classList.add('show')));
+
+  // auto dismiss after 4.5s
+  setTimeout(() => {
+    notif.classList.add('hide');
+    setTimeout(() => notif.remove(), 500);
+  }, 4500);
+}
+
+async function runThoughts() {
+  // Start after 3s, fire each with 5s gap
+  await sleep(3000);
+  for (const t of THOUGHTS) {
+    showThoughtNotif(t);
+    await sleep(5000);
+  }
+}
+
 // INLINE MUSIC PLAYER
 function openPlayer() {
   const TOTAL = 4 * 60 + 52;
@@ -186,7 +233,6 @@ function openPlayer() {
   const sheet = document.createElement('div');
   sheet.className = 'music-player-sheet';
 
-  // SVG icons — matching Apple Music exactly
   const ICO_PREV   = `<svg width="44" height="44" viewBox="0 0 44 44" fill="white"><polygon points="22,8 6,22 22,36"/><rect x="26" y="8" width="6" height="28" rx="2"/></svg>`;
   const ICO_PAUSE  = `<svg width="52" height="52" viewBox="0 0 52 52" fill="white"><rect x="12" y="10" width="10" height="32" rx="3"/><rect x="30" y="10" width="10" height="32" rx="3"/></svg>`;
   const ICO_PLAY   = `<svg width="52" height="52" viewBox="0 0 52 52" fill="white"><polygon points="14,8 42,26 14,44"/></svg>`;
@@ -242,10 +288,10 @@ function openPlayer() {
   document.body.appendChild(sheet);
   requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('open')));
 
-  const fillEl   = sheet.querySelector('#mpFill');
-  const curEl    = sheet.querySelector('#mpCurrent');
-  const remEl    = sheet.querySelector('#mpRemain');
-  const playBtn  = sheet.querySelector('#mpPlay');
+  const fillEl  = sheet.querySelector('#mpFill');
+  const curEl   = sheet.querySelector('#mpCurrent');
+  const remEl   = sheet.querySelector('#mpRemain');
+  const playBtn = sheet.querySelector('#mpPlay');
 
   function updateBar() {
     fillEl.style.width = (current / TOTAL * 100) + '%';
@@ -258,23 +304,19 @@ function openPlayer() {
     if (current >= TOTAL) { isPlaying = false; clearInterval(timer); playBtn.innerHTML = ICO_PLAY; }
     updateBar();
   }
-
   updateBar();
-  // disable transition for first render
   fillEl.style.transition = 'none';
   requestAnimationFrame(() => { fillEl.style.transition = 'width 1s linear'; });
   timer = setInterval(tick, 1000);
 
   playBtn.addEventListener('click', () => {
     isPlaying = !isPlaying;
-    if (isPlaying) {
-      timer = setInterval(tick, 1000);
-      playBtn.innerHTML = ICO_PAUSE;
-    } else {
-      clearInterval(timer);
-      playBtn.innerHTML = ICO_PLAY;
-    }
+    if (isPlaying) { timer = setInterval(tick, 1000); playBtn.innerHTML = ICO_PAUSE; }
+    else { clearInterval(timer); playBtn.innerHTML = ICO_PLAY; }
   });
+
+  // kick off thought notifications
+  runThoughts();
 }
 
 // POST ENDING
@@ -292,14 +334,14 @@ async function run() {
   for (const msg of MESSAGES) {
     switch (msg.t) {
       case 'ts': lastSide = null; await sleep(1800); await dayTransition(msg.text); await sleep(300); break;
-      case 'him':         await addBubble('him', msg.text); await sleep(480); break;
-      case 'me':          await addBubble('me', msg.text);  await sleep(380); break;
-      case 'me-unsent':   await addBubble('me', msg.text, true); await sleep(380); break;
-      case 'seen':        await addSeen(); break;
-      case 'typing-gone': await typingGone(); break;
-      case 'system':      await addSystem(msg.text); break;
+      case 'him':           await addBubble('him', msg.text); await sleep(480); break;
+      case 'me':            await addBubble('me', msg.text);  await sleep(380); break;
+      case 'me-unsent':     await addBubble('me', msg.text, true); await sleep(380); break;
+      case 'seen':          await addSeen(); break;
+      case 'typing-gone':   await typingGone(); break;
+      case 'system':        await addSystem(msg.text); break;
       case 'not-delivered': await addNotDelivered(); break;
-      case 'post-ending': await postEnding(); break;
+      case 'post-ending':   await postEnding(); break;
     }
   }
 }
