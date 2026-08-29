@@ -7,18 +7,6 @@ dayScreen.id = 'dayScreen';
 dayScreen.innerHTML = '<div id="dayLabel"></div>';
 document.getElementById('app').appendChild(dayScreen);
 
-const ENDING_LINES = [
-  { text: 'He came to me first.',                       cls: 'accent' },
-  { text: 'He asked to know me.',                       cls: 'accent' },
-  { text: 'He kissed me like I was worth staying for.', cls: '' },
-  { text: 'Then he left.',                              cls: '' },
-  { text: 'No goodbye.',                               cls: '' },
-  { text: 'No explanation.',                           cls: '' },
-  { text: 'No proper ending.',                         cls: '' },
-  { text: "And somehow \u2014 I'm still here.",         cls: 'bright' },
-  { text: "I wasn't the problem.",                     cls: 'bright' },
-];
-
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <circle cx="50" cy="50" r="24" fill="#fff" opacity="0.92"/>
   <ellipse cx="50" cy="108" rx="44" ry="40" fill="#fff" opacity="0.92"/>
@@ -145,7 +133,7 @@ async function typingGone() {
   await sleep(900);
 }
 
-// ── DELETE FEELINGS DIALOG ──
+// ── DIALOG HELPER ──
 function showDialog(title, msg, buttons) {
   return new Promise(resolve => {
     const backdrop = document.createElement('div');
@@ -158,7 +146,7 @@ function showDialog(title, msg, buttons) {
         <div class="dialog-msg">${msg}</div>
       </div>
       <div class="dialog-actions">
-        ${buttons.map((b,i) => `<button class="dialog-btn ${b.cls||''}" data-i="${i}">${b.label}</button>`).join('')}
+        ${buttons.map((b, i) => `<button class="dialog-btn ${b.cls || ''}" data-i="${i}">${b.label}</button>`).join('')}
       </div>`;
     backdrop.appendChild(dialog);
     document.body.appendChild(backdrop);
@@ -172,26 +160,30 @@ function showDialog(title, msg, buttons) {
   });
 }
 
+// ── DELETE FEELINGS: hanya bisa Keep ──
 async function deleteFeelingSequence() {
-  // First dialog: delete?
-  const choice = await showDialog(
-    'Delete Feelings',
-    'Are you sure you want to delete everything you felt?',
-    [
-      { label: 'Keep',   cls: 'bold' },
-      { label: 'Delete', cls: 'destructive' }
-    ]
-  );
-
-  if (choice === 1) {
-    // Tried to delete — can't
-    await showDialog(
-      'Cannot Delete',
-      'These feelings cannot be deleted. They happened. They were real.',
-      [{ label: 'OK', cls: 'bold' }]
+  let chose_delete = true;
+  while (chose_delete) {
+    const choice = await showDialog(
+      'Delete Feelings',
+      'Are you sure you want to delete everything you felt?',
+      [
+        { label: 'Keep',   cls: 'bold' },
+        { label: 'Delete', cls: 'destructive' }
+      ]
     );
+    if (choice === 0) {
+      // Kept — exit loop
+      chose_delete = false;
+    } else {
+      // Tried to delete — show error, loop back
+      await showDialog(
+        'Cannot Delete',
+        'These feelings cannot be deleted. They happened. They were real.',
+        [{ label: 'OK', cls: 'bold' }]
+      );
+    }
   }
-  // choice === 0 = kept, nothing happens
 }
 
 // ── APPLE MUSIC NOTIFICATION ──
@@ -201,9 +193,7 @@ function showMusicNotif() {
     notif.className = 'music-notif';
     notif.innerHTML = `
       <div class="music-notif-icon">
-        <svg viewBox="0 0 24 24" fill="white">
-          <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="white"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
       </div>
       <div class="music-notif-content">
         <div class="music-notif-app">Apple Music</div>
@@ -217,34 +207,16 @@ function showMusicNotif() {
       notif.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
       notif.style.opacity = '0';
       notif.style.transform = 'translateX(-50%) translateY(-120%)';
-      setTimeout(() => { notif.remove(); resolve(); }, 400);
+      setTimeout(() => { notif.remove(); resolve(); }, 420);
     });
   });
 }
 
-// ── ENDING ──
-async function showEnding() {
-  await sleep(1800);
-  ending.classList.add('show');
-  await sleep(600);
-  for (const line of ENDING_LINES) {
-    const el = document.createElement('div');
-    el.className = `ending-line ${line.cls}`;
-    el.textContent = line.text;
-    endingInner.appendChild(el);
-    await sleep(80);
-    el.classList.add('show');
-    await sleep(1600);
-  }
-
-  // After all ending lines shown
-  await sleep(1200);
-
-  // Step 1: Delete feelings dialog
+// ── POST-ENDING (tanpa ending overlay, langsung di atas chat) ──
+async function postEnding() {
+  await sleep(1400);
   await deleteFeelingSequence();
-  await sleep(800);
-
-  // Step 2: Apple Music notification drops from top
+  await sleep(700);
   await showMusicNotif();
 }
 
@@ -259,14 +231,14 @@ async function run() {
         await dayTransition(msg.text);
         await sleep(300);
         break;
-      case 'him':  await addBubble('him', msg.text); await sleep(480); break;
-      case 'me':   await addBubble('me', msg.text);  await sleep(380); break;
-      case 'me-unsent': await addBubble('me', msg.text, true); await sleep(380); break;
-      case 'seen': await addSeen(); break;
+      case 'him':         await addBubble('him', msg.text); await sleep(480); break;
+      case 'me':          await addBubble('me', msg.text);  await sleep(380); break;
+      case 'me-unsent':   await addBubble('me', msg.text, true); await sleep(380); break;
+      case 'seen':        await addSeen(); break;
       case 'typing-gone': await typingGone(); break;
-      case 'system': await addSystem(msg.text); break;
+      case 'system':      await addSystem(msg.text); break;
       case 'not-delivered': await addNotDelivered(); break;
-      case 'ending': await showEnding(); break;
+      case 'post-ending': await postEnding(); break;
     }
   }
 }

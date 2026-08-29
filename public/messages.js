@@ -66,5 +66,5 @@ const MESSAGES = [
   { t: 'me-unsent', text: '...' },
   { t: 'not-delivered' },
 
-  { t: 'ending' },
+  { t: 'post-ending' },
 ];
