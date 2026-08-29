@@ -59,19 +59,24 @@ html, body {
   flex-shrink: 0;
 }
 
+/* Default Instagram-style placeholder avatar */
 .avatar {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 18px;
-  color: #fff;
-  border: 2px solid #000;
+  overflow: hidden;
+  flex-shrink: 0;
   box-shadow: 0 0 0 2px #833ab4;
+  background: #c7c7cc;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.avatar svg {
+  width: 78%;
+  height: 78%;
+  margin-bottom: -2px;
 }
 
 .online-dot {
@@ -136,9 +141,7 @@ html, body {
 
 .chat::-webkit-scrollbar { display: none; }
 
-/* ── TIMESTAMP IN CHAT ──
-   Persis seperti Instagram DM: teks kecil abu di tengah, format "JUL 17 AT 8:41 PM"
-*/
+/* ── TIMESTAMP IN CHAT ── */
 .ts {
   align-self: center;
   font-size: 12px;
@@ -146,11 +149,6 @@ html, body {
   color: #8e8e93;
   text-align: center;
   margin: 18px 0 10px;
-  padding: 0;
-  background: none;
-  border: none;
-  letter-spacing: 0;
-  text-transform: none;
   flex-shrink: 0;
 }
 
@@ -195,36 +193,37 @@ html, body {
   margin-bottom: 3px;
 }
 
-.row.gap-top {
-  margin-top: 10px;
-}
+.row.gap-top { margin-top: 10px; }
 
 .row.show {
   opacity: 1;
   transform: translateY(0);
 }
 
-.row.me {
-  flex-direction: row-reverse;
-}
+.row.me { flex-direction: row-reverse; }
+.row.me .row-avatar { display: none; }
 
+/* Small avatar inside chat (same style as header) */
 .row-avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #fff;
+  overflow: hidden;
+  background: #c7c7cc;
   flex-shrink: 0;
   margin-bottom: 2px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.row-avatar svg {
+  width: 78%;
+  height: 78%;
+  margin-bottom: -1px;
 }
 
 .row-avatar.invisible { visibility: hidden; }
-.row.me .row-avatar { display: none; }
 
 /* ── BUBBLE ── */
 .bubble {
@@ -263,7 +262,9 @@ html, body {
 
 .receipt.show { opacity: 1; }
 
-/* ── TYPING ── */
+/* ── TYPING ROW ──
+   Sama persis struktur dengan .row.him supaya posisi bubble sejajar
+*/
 .typing-row {
   display: flex;
   align-items: flex-end;
@@ -276,6 +277,20 @@ html, body {
 
 .typing-row.show { opacity: 1; }
 
+/* Avatar dalam typing row — sama dengan .row-avatar */
+.typing-row .row-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #c7c7cc;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
 .typing-bubble {
   background: #1c1c1e;
   border-radius: 20px;
@@ -284,6 +299,8 @@ html, body {
   display: flex;
   gap: 5px;
   align-items: center;
+  /* Tinggi sama dengan bubble normal */
+  min-height: 38px;
 }
 
 .dot {

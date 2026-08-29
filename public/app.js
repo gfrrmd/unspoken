@@ -20,10 +20,25 @@ const ENDING_LINES = [
   { text: "I wasn't the problem.",                     cls: 'bright' },
 ];
 
+// SVG untuk avatar placeholder (sama persis dengan header)
+const AVATAR_SVG = `
+  <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="30" r="18" fill="#fff" opacity="0.85"/>
+    <ellipse cx="40" cy="72" rx="30" ry="22" fill="#fff" opacity="0.85"/>
+  </svg>
+`;
+
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function scrollEnd() {
   chat.scrollTop = chat.scrollHeight;
+}
+
+function makeAvatar(size = 'small') {
+  const el = document.createElement('div');
+  el.className = 'row-avatar';
+  el.innerHTML = AVATAR_SVG;
+  return el;
 }
 
 // ── TIMESTAMP LABEL IN CHAT ──
@@ -35,30 +50,25 @@ function addTsInChat(label) {
   scrollEnd();
 }
 
-// ── FULL BLACK DAY TRANSITION THEN SHOW LABEL IN CHAT ──
+// ── FULL BLACK DAY TRANSITION ──
 async function dayTransition(label) {
   const dayLabel = document.getElementById('dayLabel');
   dayLabel.textContent = label;
   dayLabel.style.opacity = '0';
 
-  // Fade to full black
   dayScreen.classList.add('visible');
   await sleep(1000);
 
-  // Text fade in
   dayLabel.style.transition = 'opacity 0.9s ease';
   dayLabel.style.opacity = '1';
   await sleep(2200);
 
-  // Text fade out
   dayLabel.style.opacity = '0';
   await sleep(900);
 
-  // Fade back to chat
   dayScreen.classList.remove('visible');
   await sleep(1000);
 
-  // After returning to chat, show the timestamp label in chat
   addTsInChat(label);
   await sleep(400);
 }
@@ -67,14 +77,15 @@ async function dayTransition(label) {
 async function showTyping(duration) {
   const row = document.createElement('div');
   row.className = 'typing-row';
-  const av = document.createElement('div');
-  av.className = 'row-avatar';
-  av.textContent = 'M';
+
+  // Avatar sama persis posisi & ukuran dengan bubble row
+  row.appendChild(makeAvatar());
+
   const bub = document.createElement('div');
   bub.className = 'typing-bubble';
   bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-  row.appendChild(av);
   row.appendChild(bub);
+
   chat.appendChild(row);
   scrollEnd();
   await sleep(40);
@@ -97,10 +108,7 @@ async function addBubble(side, text, unsent = false) {
   lastSide = side;
 
   if (side === 'him') {
-    const av = document.createElement('div');
-    av.className = 'row-avatar';
-    av.textContent = 'M';
-    row.appendChild(av);
+    row.appendChild(makeAvatar());
   }
 
   const bub = document.createElement('div');
@@ -157,13 +165,10 @@ async function addNotDelivered() {
 async function typingGone() {
   const row = document.createElement('div');
   row.className = 'typing-row';
-  const av = document.createElement('div');
-  av.className = 'row-avatar';
-  av.textContent = 'M';
+  row.appendChild(makeAvatar());
   const bub = document.createElement('div');
   bub.className = 'typing-bubble';
   bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-  row.appendChild(av);
   row.appendChild(bub);
   chat.appendChild(row);
   scrollEnd();
@@ -200,7 +205,6 @@ async function run() {
     switch (msg.t) {
       case 'ts':
         lastSide = null;
-        // Pause after last bubble before transition — feels natural
         await sleep(1800);
         await dayTransition(msg.text);
         await sleep(300);
