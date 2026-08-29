@@ -1,0 +1,16 @@
+{
+  "name": "unspoken",
+  "version": "1.0.0",
+  "description": "A story told through an Instagram DM — the one that started with hello and ended with silence.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
