@@ -254,77 +254,118 @@ html, body {
 .mp-bottom-btn { background: none; border: none; color: #8e8e93; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 8px; }
 
 /* ============================
-   CREDIT SCENE
+   CREDIT SCENE — cinematic scroll
    ============================ */
-.credit-wrap {
+
+/* viewport: full screen, clips overflow, fade mask top+bottom */
+.credit-viewport {
   position: absolute;
   inset: 0;
+  overflow: hidden;
+  /* fade mask — text fades in/out at edges like real film credits */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 12%,
+    #000 88%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 12%,
+    #000 88%,
+    transparent 100%
+  );
+}
+
+/* the scrolling column */
+.credit-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 48px 40px;
-  gap: 6px;
-  overflow: hidden;
+  width: 100%;
+  padding: 0 40px;
+  will-change: transform;
 }
-.credit-line {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.9s ease, transform 0.9s ease;
+
+.credit-gap {
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.credit-col-line {
   text-align: center;
-  line-height: 1.6;
+  line-height: 1.5;
+  flex-shrink: 0;
 }
-.credit-line.show {
-  opacity: 1;
-  transform: translateY(0);
-}
+
+/* font: light-weight geometric sans — much cleaner than system-ui default */
 .credit-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 6px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, 'Noto Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 300;
+  letter-spacing: 10px;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  color: #ffffff;
+  margin-bottom: 2px;
 }
+
 .credit-divider {
-  font-size: 13px;
-  color: #3a3a3c;
-  letter-spacing: 2px;
-  margin: 6px 0;
+  font-size: 18px;
+  color: #444;
+  letter-spacing: 4px;
 }
+
 .credit-tagline {
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 14px;
-  color: #8e8e93;
-  font-weight: 300;
-  line-height: 1.8;
-  margin: 8px 0;
+  font-weight: 400;
+  font-style: italic;
+  color: #888;
+  line-height: 1.9;
 }
+
 .credit-tagline-sm {
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 13px;
-  color: #636366;
-  font-weight: 300;
+  font-weight: 400;
   font-style: italic;
+  color: #666;
+  line-height: 1.8;
 }
+
 .credit-label {
-  font-size: 11px;
-  color: #636366;
-  letter-spacing: 1.5px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, 'Noto Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 3px;
   text-transform: uppercase;
-  margin-top: 12px;
+  color: #555;
+  margin-top: 4px;
 }
+
 .credit-name {
-  font-size: 16px;
-  color: #ebebf5;
-  font-weight: 500;
+  font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, 'Noto Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  color: #d4d4d4;
 }
+
 .credit-sublabel {
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 12px;
-  color: #636366;
   font-style: italic;
+  color: #666;
+  letter-spacing: 0.5px;
 }
+
 .credit-copy {
-  font-size: 11px;
-  color: #3a3a3c;
-  letter-spacing: 1px;
-  margin-top: 16px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, 'Noto Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 2.5px;
+  color: #444;
+  text-transform: uppercase;
 }

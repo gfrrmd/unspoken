@@ -100,12 +100,11 @@ async function typingGone() {
   row.classList.remove('show'); await sleep(300); row.remove(); await sleep(900);
 }
 
-// DIALOG — z-index diset lewat inline style agar selalu di atas segalanya
+// DIALOG
 function showDialog(title, msg, buttons) {
   return new Promise(resolve => {
     const backdrop = document.createElement('div');
     backdrop.className = 'dialog-backdrop';
-    // paksa z-index tertinggi supaya selalu di atas music player sheet (z:400)
     backdrop.style.zIndex = '9999';
     const dialog = document.createElement('div'); dialog.className = 'dialog';
     dialog.innerHTML = `
@@ -212,7 +211,7 @@ let playerSheet = null;
 let playerTimer = null;
 
 async function runCrashSequence() {
-  // 1. stop timer dulu (visual freeze progress bar) — JANGAN disable button dulu
+  // 1. stop timer (visual freeze)
   if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
 
   await sleep(1200);
@@ -226,15 +225,14 @@ async function runCrashSequence() {
   }
   await sleep(500);
 
-  // 3. crash dialog — muncul DI ATAS player sheet
-  // (z-index 9999 di-set lewat inline style di showDialog)
+  // 3. crash dialog
   await showDialog(
-    'Unspoken has stopped working.',
+    'App has stopped working.',
     'This app encountered an unexpected error.',
     [{ label: 'Close App', cls: 'destructive bold' }]
   );
 
-  // 4. setelah user tap Close — baru disable dan fade out player
+  // 4. fade out + disable player setelah user tap Close
   if (playerSheet) {
     playerSheet.querySelectorAll('button').forEach(b => b.disabled = true);
     playerSheet.style.transition = 'opacity 0.5s ease';
@@ -244,27 +242,33 @@ async function runCrashSequence() {
     playerSheet = null;
   }
 
-  // 5. dissolve chat bubbles bottom to top
+  // 5. scroll chat ke bubble paling atas dulu
+  chat.style.transition = 'scroll-behavior 0s';
+  chat.style.scrollBehavior = 'smooth';
+  chat.scrollTo({ top: 0, behavior: 'smooth' });
+  await sleep(900);
+
+  // 6. dissolve bubble satu-satu dari bawah ke atas
   const allRows = Array.from(chat.querySelectorAll('.row, .ts, .system, .receipt, .not-delivered'));
   for (let i = allRows.length - 1; i >= 0; i--) {
-    allRows[i].style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+    allRows[i].style.transition = 'opacity 0.3s ease, transform 0.3s ease';
     allRows[i].style.opacity = '0';
-    allRows[i].style.transform = 'translateY(6px)';
-    await sleep(80);
+    allRows[i].style.transform = 'translateY(8px)';
+    await sleep(70);
   }
-  await sleep(500);
+  await sleep(400);
 
-  // 6. fade to black
+  // 7. fade to black
   const blackout = document.createElement('div');
   blackout.style.cssText = 'position:fixed;inset:0;background:#000;z-index:9000;opacity:0;transition:opacity 1.2s ease;';
   document.body.appendChild(blackout);
   requestAnimationFrame(() => requestAnimationFrame(() => blackout.style.opacity = '1'));
   await sleep(1400);
 
-  // 7. credit scene
+  // 8. credit scene
   await showCreditScene(blackout);
 
-  // 8. fade out, restart
+  // 9. fade out, restart
   blackout.style.transition = 'opacity 1s ease';
   blackout.style.opacity = '0';
   await sleep(1100);
@@ -275,57 +279,95 @@ async function runCrashSequence() {
   run();
 }
 
+// CREDIT SCENE — gaya film: satu kolom panjang scroll dari bawah ke atas
 const CREDIT_LINES = [
   { text: 'UNSPOKEN', cls: 'credit-title' },
-  { text: '\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014', cls: 'credit-divider' },
+  { text: '', cls: 'credit-gap' },
   { text: 'a story about the messages\nyou typed but never sent', cls: 'credit-tagline' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
+  { text: '', cls: 'credit-gap' },
   { text: 'written & directed by', cls: 'credit-label' },
   { text: 'Rama', cls: 'credit-name' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
   { text: 'original soundtrack', cls: 'credit-label' },
   { text: 'i love you', cls: 'credit-name' },
   { text: 'Billie Eilish', cls: 'credit-sublabel' },
-  { text: 'When We All Fall Asleep, Where Do We Go?', cls: 'credit-sublabel' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
   { text: 'visual design & development', cls: 'credit-label' },
   { text: 'Rama', cls: 'credit-name' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
   { text: 'built with', cls: 'credit-label' },
   { text: 'HTML \u00b7 CSS \u00b7 JavaScript', cls: 'credit-sublabel' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
+  { text: '', cls: 'credit-gap' },
   { text: '\u2014', cls: 'credit-divider' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
   { text: 'some conversations end\nwithout a proper goodbye', cls: 'credit-tagline' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
   { text: 'this was one of them', cls: 'credit-tagline-sm' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
+  { text: '', cls: 'credit-gap' },
   { text: '\u2014', cls: 'credit-divider' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
   { text: 'no feelings were deleted\nin the making of this experience', cls: 'credit-tagline' },
-  { text: '', cls: 'credit-spacer' },
+  { text: '', cls: 'credit-gap' },
+  { text: '', cls: 'credit-gap' },
   { text: '\u00a9 2026 gfrrmd', cls: 'credit-copy' },
+  { text: '', cls: 'credit-gap' },
+  { text: '', cls: 'credit-gap' },
 ];
 
 async function showCreditScene(container) {
-  const wrap = document.createElement('div');
-  wrap.className = 'credit-wrap';
-  container.appendChild(wrap);
+  // wrapper viewport
+  const viewport = document.createElement('div');
+  viewport.className = 'credit-viewport';
+  container.appendChild(viewport);
 
+  // inner scroll column — starts below viewport, scrolls up
+  const col = document.createElement('div');
+  col.className = 'credit-col';
+  viewport.appendChild(col);
+
+  // build all lines first
   for (const line of CREDIT_LINES) {
-    if (line.cls === 'credit-spacer') { await sleep(500); continue; }
     const el = document.createElement('div');
-    el.className = `credit-line ${line.cls}`;
-    el.innerHTML = line.text.replace(/\n/g, '<br>');
-    wrap.appendChild(el);
-    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
-    await sleep(line.cls === 'credit-title' ? 1200 : line.cls === 'credit-tagline' ? 1800 : 900);
+    if (line.cls === 'credit-gap') {
+      el.className = 'credit-gap';
+    } else {
+      el.className = `credit-col-line ${line.cls}`;
+      el.innerHTML = line.text.replace(/\n/g, '<br>');
+    }
+    col.appendChild(el);
   }
-  await sleep(2500);
-  wrap.style.transition = 'opacity 1s ease';
-  wrap.style.opacity = '0';
+
+  // measure total height after paint
+  await sleep(60);
+  const colH = col.scrollHeight;
+  const vpH  = viewport.clientHeight || window.innerHeight;
+
+  // start position: col bottom at viewport bottom
+  col.style.transform = `translateY(${vpH}px)`;
+  col.style.transition = 'none';
+
+  await sleep(30);
+
+  // animate: scroll col upward until its bottom exits viewport top
+  // total travel = vpH (start offset) + colH
+  const totalTravel = vpH + colH;
+  // speed: ~80px per second — adjust here
+  const durationMs = Math.round(totalTravel / 55 * 1000);
+
+  col.style.transition = `transform ${durationMs}ms linear`;
+  col.style.transform  = `translateY(-${colH}px)`;
+
+  // wait until scroll finishes, then hold briefly
+  await sleep(durationMs + 800);
+
+  // fade out viewport
+  viewport.style.transition = 'opacity 1s ease';
+  viewport.style.opacity = '0';
   await sleep(1100);
-  wrap.remove();
+  viewport.remove();
 }
 
 async function runThoughts() {
