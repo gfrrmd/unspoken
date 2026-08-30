@@ -144,7 +144,7 @@ async function deleteFeelingSequence() {
   }
 }
 
-// MUSIC NOTIF — liquid glass
+// MUSIC NOTIF
 function showMusicNotif() {
   return new Promise(resolve => {
     const notif = document.createElement('div');
@@ -170,18 +170,18 @@ function showMusicNotif() {
   });
 }
 
-// ── THOUGHT NOTIFICATIONS — liquid glass ──
+// THOUGHT NOTIFICATIONS
 const THOUGHTS = [
   { app: 'Notes', text: 'Why did you make me feel chosen if you were going to leave anyway?' },
-  { app: 'Notes', text: 'I keep checking your profile even though I know nothing’s there.' },
-  { app: 'Notes', text: 'I wasn’t asking for much. Just honesty.' },
+  { app: 'Notes', text: 'I keep checking your profile even though I know nothing\u2019s there.' },
+  { app: 'Notes', text: 'I wasn\u2019t asking for much. Just honesty.' },
   { app: 'Notes', text: 'You were the one who started this.' },
-  { app: 'Notes', text: 'I still don’t know what I did wrong.' },
+  { app: 'Notes', text: 'I still don\u2019t know what I did wrong.' },
   { app: 'Notes', text: 'Some nights I write messages I never send.' },
   { app: 'Notes', text: 'I think about the version of you that was kind to me.' },
   { app: 'Notes', text: 'Moving on feels like a betrayal of everything I felt.' },
-  { app: 'Notes', text: 'I’m not angry anymore. I’m just tired.' },
-  { app: 'Notes', text: 'I hope you’re okay. I hate that I still mean it.' },
+  { app: 'Notes', text: 'I\u2019m not angry anymore. I\u2019m just tired.' },
+  { app: 'Notes', text: 'I hope you\u2019re okay. I hate that I still mean it.' },
 ];
 
 function showThoughtNotif(thought) {
@@ -205,11 +205,146 @@ function showThoughtNotif(thought) {
   }, 4500);
 }
 
+// ── CRASH + DISSOLVE + CREDIT + RESTART ──
+let playerSheet = null;
+let playerTimer = null;
+
+async function runCrashSequence() {
+  // 1. freeze player — disable all controls
+  if (playerSheet) {
+    playerSheet.querySelectorAll('button').forEach(b => b.disabled = true);
+    if (playerTimer) clearInterval(playerTimer);
+  }
+  await sleep(1200);
+
+  // 2. screen flicker
+  for (let i = 0; i < 3; i++) {
+    document.body.style.filter = 'brightness(2)';
+    await sleep(60);
+    document.body.style.filter = 'brightness(1)';
+    await sleep(80);
+  }
+  await sleep(600);
+
+  // 3. crash dialog
+  await showDialog(
+    'Unspoken has stopped working.',
+    'This app encountered an unexpected error.',
+    [{ label: 'Close App', cls: 'destructive bold' }]
+  );
+
+  // 4. fade out player sheet
+  if (playerSheet) {
+    playerSheet.style.transition = 'opacity 0.5s ease';
+    playerSheet.style.opacity = '0';
+    await sleep(520);
+    playerSheet.remove();
+    playerSheet = null;
+  }
+
+  // 5. dissolve chat bubbles bottom to top
+  const allRows = Array.from(chat.querySelectorAll('.row, .ts, .system, .receipt, .not-delivered'));
+  for (let i = allRows.length - 1; i >= 0; i--) {
+    allRows[i].style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+    allRows[i].style.opacity = '0';
+    allRows[i].style.transform = 'translateY(6px)';
+    await sleep(80);
+  }
+  await sleep(500);
+
+  // 6. fade to black
+  const blackout = document.createElement('div');
+  blackout.style.cssText = 'position:fixed;inset:0;background:#000;z-index:9000;opacity:0;transition:opacity 1.2s ease;';
+  document.body.appendChild(blackout);
+  requestAnimationFrame(() => requestAnimationFrame(() => blackout.style.opacity = '1'));
+  await sleep(1400);
+
+  // 7. credit scene
+  await showCreditScene(blackout);
+
+  // 8. fade out credits, then restart
+  blackout.style.transition = 'opacity 1s ease';
+  blackout.style.opacity = '0';
+  await sleep(1100);
+  blackout.remove();
+
+  // clear chat and restart
+  chat.innerHTML = '';
+  lastSide = null;
+  run();
+}
+
+const CREDIT_LINES = [
+  { text: 'UNSPOKEN', cls: 'credit-title' },
+  { text: '\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014', cls: 'credit-divider' },
+  { text: 'a story about the messages\nyou typed but never sent', cls: 'credit-tagline' },
+  { text: '', cls: 'credit-spacer' },
+  { text: 'written & directed by', cls: 'credit-label' },
+  { text: 'Rama', cls: 'credit-name' },
+  { text: '', cls: 'credit-spacer' },
+  { text: 'original soundtrack', cls: 'credit-label' },
+  { text: 'i love you', cls: 'credit-name' },
+  { text: 'Billie Eilish', cls: 'credit-sublabel' },
+  { text: 'When We All Fall Asleep, Where Do We Go?', cls: 'credit-sublabel' },
+  { text: '', cls: 'credit-spacer' },
+  { text: 'visual design & development', cls: 'credit-label' },
+  { text: 'Rama', cls: 'credit-name' },
+  { text: '', cls: 'credit-spacer' },
+  { text: 'built with', cls: 'credit-label' },
+  { text: 'HTML \u00b7 CSS \u00b7 JavaScript', cls: 'credit-sublabel' },
+  { text: '', cls: 'credit-spacer' },
+  { text: '\u2014', cls: 'credit-divider' },
+  { text: '', cls: 'credit-spacer' },
+  { text: 'some conversations end\nwithout a proper goodbye', cls: 'credit-tagline' },
+  { text: '', cls: 'credit-spacer' },
+  { text: 'this was one of them', cls: 'credit-tagline-sm' },
+  { text: '', cls: 'credit-spacer' },
+  { text: '\u2014', cls: 'credit-divider' },
+  { text: '', cls: 'credit-spacer' },
+  { text: 'no feelings were deleted\nin the making of this experience', cls: 'credit-tagline' },
+  { text: '', cls: 'credit-spacer' },
+  { text: '\u00a9 2026 gfrrmd', cls: 'credit-copy' },
+];
+
+async function showCreditScene(container) {
+  const wrap = document.createElement('div');
+  wrap.className = 'credit-wrap';
+  container.appendChild(wrap);
+
+  for (const line of CREDIT_LINES) {
+    if (line.cls === 'credit-spacer') {
+      await sleep(500);
+      continue;
+    }
+    const el = document.createElement('div');
+    el.className = `credit-line ${line.cls}`;
+    // support \n as <br>
+    el.innerHTML = line.text.replace(/\n/g, '<br>');
+    wrap.appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+    await sleep(line.cls === 'credit-title' ? 1200 : line.cls === 'credit-tagline' ? 1800 : 900);
+  }
+  // hold at end
+  await sleep(2500);
+
+  // fade out all credit lines
+  wrap.style.transition = 'opacity 1s ease';
+  wrap.style.opacity = '0';
+  await sleep(1100);
+  wrap.remove();
+}
+
 async function runThoughts() {
   await sleep(3000);
-  for (const t of THOUGHTS) {
-    showThoughtNotif(t);
-    await sleep(5000);
+  for (let i = 0; i < THOUGHTS.length; i++) {
+    showThoughtNotif(THOUGHTS[i]);
+    if (i < THOUGHTS.length - 1) {
+      await sleep(5000);
+    } else {
+      // last notif: wait for it to dismiss, then crash
+      await sleep(5500);
+      runCrashSequence();
+    }
   }
 }
 
@@ -219,7 +354,6 @@ function openPlayer() {
   const START = 2 * 60 + 46;
   let current = START;
   let isPlaying = true;
-  let timer = null;
 
   function fmt(s) {
     s = Math.max(0, Math.min(TOTAL, Math.round(s)));
@@ -228,6 +362,7 @@ function openPlayer() {
 
   const sheet = document.createElement('div');
   sheet.className = 'music-player-sheet';
+  playerSheet = sheet;
 
   const ICO_PREV   = `<svg width="44" height="44" viewBox="0 0 44 44" fill="white"><polygon points="22,8 6,22 22,36"/><rect x="26" y="8" width="6" height="28" rx="2"/></svg>`;
   const ICO_PAUSE  = `<svg width="52" height="52" viewBox="0 0 52 52" fill="white"><rect x="12" y="10" width="10" height="32" rx="3"/><rect x="30" y="10" width="10" height="32" rx="3"/></svg>`;
@@ -297,18 +432,18 @@ function openPlayer() {
   function tick() {
     if (!isPlaying) return;
     current = Math.min(current + 1, TOTAL);
-    if (current >= TOTAL) { isPlaying = false; clearInterval(timer); playBtn.innerHTML = ICO_PLAY; }
+    if (current >= TOTAL) { isPlaying = false; clearInterval(playerTimer); playBtn.innerHTML = ICO_PLAY; }
     updateBar();
   }
   updateBar();
   fillEl.style.transition = 'none';
   requestAnimationFrame(() => { fillEl.style.transition = 'width 1s linear'; });
-  timer = setInterval(tick, 1000);
+  playerTimer = setInterval(tick, 1000);
 
   playBtn.addEventListener('click', () => {
     isPlaying = !isPlaying;
-    if (isPlaying) { timer = setInterval(tick, 1000); playBtn.innerHTML = ICO_PAUSE; }
-    else { clearInterval(timer); playBtn.innerHTML = ICO_PLAY; }
+    if (isPlaying) { playerTimer = setInterval(tick, 1000); playBtn.innerHTML = ICO_PAUSE; }
+    else { clearInterval(playerTimer); playBtn.innerHTML = ICO_PLAY; }
   });
 
   runThoughts();
