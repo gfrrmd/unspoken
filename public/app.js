@@ -8,35 +8,30 @@ dayScreen.innerHTML = '<div id="dayLabel"></div>';
 document.getElementById('app').appendChild(dayScreen);
 
 // ── BACKGROUND AUDIO ──
-// Trick: mulai muted (browser izinkan autoplay muted)
-// lalu langsung unmute — audio sudah jalan sebelum user perlu tap
 const bgAudio = document.getElementById('bgAudio');
 bgAudio.volume = 0.18;
 
-bgAudio.play().then(() => {
-  // Berhasil autoplay muted — langsung unmute
-  bgAudio.muted = false;
-}).catch(() => {
-  // Fallback: tunggu interaksi pertama
-  const unmute = () => {
-    bgAudio.muted = false;
-    bgAudio.play().catch(() => {});
-  };
-  document.addEventListener('touchstart', unmute, { once: true, passive: true });
-  document.addEventListener('click', unmute, { once: true });
-});
-
-// ── LOADING SCREEN (otomatis, tidak perlu tap) ──
+// ── LOADING SCREEN — tunggu klik tombol Begin ──
 const loading = document.getElementById('loading');
+const loadingBtn = document.getElementById('loading-btn');
 
-// Setelah 3.2 detik loading screen fade out, lalu run()
+// Tombol Begin muncul setelah animasi judul selesai (1.8 detik)
 setTimeout(() => {
+  loadingBtn.classList.add('loading-btn-show');
+}, 1800);
+
+loadingBtn.addEventListener('click', () => {
+  // Klik Begin = valid user gesture → play audio langsung unmuted
+  bgAudio.muted = false;
+  bgAudio.play().catch(() => {});
+
+  // Fade out loading screen
   loading.classList.add('loading-hide');
   setTimeout(() => {
     loading.remove();
     run();
-  }, 1000);
-}, 3200);
+  }, 900);
+}, { once: true });
 
 // ── UTILS ──
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -511,4 +506,3 @@ async function run() {
     }
   }
 }
-// run() dipanggil otomatis oleh loading screen timeout
