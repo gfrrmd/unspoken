@@ -210,6 +210,16 @@ function showThoughtNotif(thought) {
 let playerSheet = null;
 let playerTimer = null;
 
+// Scroll chat so that `el` is vertically centered in the viewport
+function scrollToCenter(el) {
+  const chatRect = chat.getBoundingClientRect();
+  const elRect   = el.getBoundingClientRect();
+  // position of el relative to chat scroll container
+  const elTop    = elRect.top - chatRect.top + chat.scrollTop;
+  const target   = elTop - (chat.clientHeight / 2) + (elRect.height / 2);
+  chat.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+}
+
 async function runCrashSequence() {
   // 1. stop timer (visual freeze)
   if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
@@ -242,33 +252,38 @@ async function runCrashSequence() {
     playerSheet = null;
   }
 
-  // 5. scroll chat ke bubble paling atas dulu
-  chat.style.transition = 'scroll-behavior 0s';
-  chat.style.scrollBehavior = 'smooth';
-  chat.scrollTo({ top: 0, behavior: 'smooth' });
-  await sleep(900);
-
-  // 6. dissolve bubble satu-satu dari bawah ke atas
+  // 5. dissolve bubble satu-satu dari bawah ke atas
+  //    tiap bubble: scroll ke tengah dulu → tunggu scroll selesai → fade out
   const allRows = Array.from(chat.querySelectorAll('.row, .ts, .system, .receipt, .not-delivered'));
-  for (let i = allRows.length - 1; i >= 0; i--) {
-    allRows[i].style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    allRows[i].style.opacity = '0';
-    allRows[i].style.transform = 'translateY(8px)';
-    await sleep(70);
-  }
-  await sleep(400);
 
-  // 7. fade to black
+  for (let i = allRows.length - 1; i >= 0; i--) {
+    const el = allRows[i];
+
+    // scroll elemen ini ke tengah layar
+    scrollToCenter(el);
+    // tunggu smooth scroll settle (~350ms cukup untuk jarak dekat)
+    await sleep(380);
+
+    // fade out elemen ini
+    el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+    el.style.opacity    = '0';
+    el.style.transform  = 'translateY(6px)';
+    // tunggu fade selesai sebelum lanjut ke elemen berikutnya
+    await sleep(420);
+  }
+  await sleep(300);
+
+  // 6. fade to black
   const blackout = document.createElement('div');
   blackout.style.cssText = 'position:fixed;inset:0;background:#000;z-index:9000;opacity:0;transition:opacity 1.2s ease;';
   document.body.appendChild(blackout);
   requestAnimationFrame(() => requestAnimationFrame(() => blackout.style.opacity = '1'));
   await sleep(1400);
 
-  // 8. credit scene
+  // 7. credit scene
   await showCreditScene(blackout);
 
-  // 9. fade out, restart
+  // 8. fade out, restart
   blackout.style.transition = 'opacity 1s ease';
   blackout.style.opacity = '0';
   await sleep(1100);
@@ -302,7 +317,7 @@ const CREDIT_LINES = [
   { text: '', cls: 'credit-gap' },
   { text: '\u2014', cls: 'credit-divider' },
   { text: '', cls: 'credit-gap' },
-  { text: 'some conversations end\nwithout a proper goodbye', cls: 'credit-tagline' },
+  { text: 'some conversations end\nyou typed but never sent', cls: 'credit-tagline' },
   { text: '', cls: 'credit-gap' },
   { text: 'this was one of them', cls: 'credit-tagline-sm' },
   { text: '', cls: 'credit-gap' },
@@ -318,17 +333,14 @@ const CREDIT_LINES = [
 ];
 
 async function showCreditScene(container) {
-  // wrapper viewport
   const viewport = document.createElement('div');
   viewport.className = 'credit-viewport';
   container.appendChild(viewport);
 
-  // inner scroll column — starts below viewport, scrolls up
   const col = document.createElement('div');
   col.className = 'credit-col';
   viewport.appendChild(col);
 
-  // build all lines first
   for (const line of CREDIT_LINES) {
     const el = document.createElement('div');
     if (line.cls === 'credit-gap') {
@@ -340,30 +352,22 @@ async function showCreditScene(container) {
     col.appendChild(el);
   }
 
-  // measure total height after paint
   await sleep(60);
   const colH = col.scrollHeight;
   const vpH  = viewport.clientHeight || window.innerHeight;
 
-  // start position: col bottom at viewport bottom
   col.style.transform = `translateY(${vpH}px)`;
   col.style.transition = 'none';
-
   await sleep(30);
 
-  // animate: scroll col upward until its bottom exits viewport top
-  // total travel = vpH (start offset) + colH
   const totalTravel = vpH + colH;
-  // speed: ~80px per second — adjust here
-  const durationMs = Math.round(totalTravel / 55 * 1000);
+  const durationMs  = Math.round(totalTravel / 55 * 1000);
 
   col.style.transition = `transform ${durationMs}ms linear`;
   col.style.transform  = `translateY(-${colH}px)`;
 
-  // wait until scroll finishes, then hold briefly
   await sleep(durationMs + 800);
 
-  // fade out viewport
   viewport.style.transition = 'opacity 1s ease';
   viewport.style.opacity = '0';
   await sleep(1100);
