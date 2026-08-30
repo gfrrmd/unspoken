@@ -3,7 +3,7 @@ const MESSAGES = [
 
   { t: 'him', text: 'Hey Rama, sorry to bother. I just think you\'re really interesting.' },
   { t: 'him', text: 'Can we talk?' },
-  { t: 'me',  text: 'Sure, Mr.M' },
+  { t: 'me',  text: 'Sure, Mr. M' },
   { t: 'him', text: 'I\'m glad you said yes.' },
   { t: 'him', text: 'I really want to meet you in person.' },
   { t: 'me',  text: 'Yeah? Why?' },
