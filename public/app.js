@@ -11,17 +11,25 @@ document.getElementById('app').appendChild(dayScreen);
 const bgAudio = new Audio('backsound.mp3');
 bgAudio.loop   = true;
 bgAudio.volume = 0.18;
+let audioStarted = false;
+
+function startAudio() {
+  if (audioStarted) return;
+  audioStarted = true;
+  bgAudio.play().catch(() => {});
+}
+
+// Audio dipicu oleh interaksi pertama APAPUN di halaman
+document.addEventListener('touchstart', startAudio, { once: true, passive: true });
+document.addEventListener('click',      startAudio, { once: true });
 
 // ── SPLASH SCREEN ──
 const splash = document.getElementById('splash');
 let splashDismissed = false;
 
-function dismissSplash(e) {
+function dismissSplash() {
   if (splashDismissed) return;
   splashDismissed = true;
-  // Cegah click ikut terpanggil setelah touchstart
-  if (e && e.cancelable) e.preventDefault();
-  bgAudio.play().catch(() => {});
   splash.classList.add('splash-hide');
   setTimeout(() => {
     splash.remove();
@@ -29,9 +37,8 @@ function dismissSplash(e) {
   }, 900);
 }
 
-// Pasang di document supaya child element tidak menghalangi
-document.addEventListener('touchstart', dismissSplash, { once: true, passive: false });
-document.addEventListener('click',      dismissSplash, { once: true });
+splash.addEventListener('click',      dismissSplash, { once: true });
+splash.addEventListener('touchend',   dismissSplash, { once: true, passive: true });
 
 // ── UTILS ──
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
