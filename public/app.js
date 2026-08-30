@@ -15,17 +15,13 @@ bgAudio.volume = 0.18;
 const loading = document.getElementById('loading');
 const loadingBtn = document.getElementById('loading-btn');
 
-// Tombol Begin muncul setelah animasi judul selesai (1.8 detik)
 setTimeout(() => {
   loadingBtn.classList.add('loading-btn-show');
 }, 1800);
 
 loadingBtn.addEventListener('click', () => {
-  // Klik Begin = valid user gesture → play audio langsung unmuted
   bgAudio.muted = false;
   bgAudio.play().catch(() => {});
-
-  // Fade out loading screen
   loading.classList.add('loading-hide');
   setTimeout(() => {
     loading.remove();
@@ -260,11 +256,11 @@ async function runCrashSequence() {
   for (let i = allRows.length - 1; i >= 0; i--) {
     const el = allRows[i];
     scrollToCenter(el);
-    await sleep(380);
-    el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+    await sleep(120); // ← jeda antar bubble (was 380)
+    el.style.transition = 'opacity 0.18s ease, transform 0.18s ease'; // ← durasi fade (was 0.4s)
     el.style.opacity    = '0';
     el.style.transform  = 'translateY(6px)';
-    await sleep(420);
+    await sleep(200); // ← tunggu fade selesai (was 420)
   }
   await sleep(300);
   const blackout = document.createElement('div');
