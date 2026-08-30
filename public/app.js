@@ -8,17 +8,20 @@ dayScreen.innerHTML = '<div id="dayLabel"></div>';
 document.getElementById('app').appendChild(dayScreen);
 
 // ── BACKGROUND AUDIO ──
-// Diputar saat user tap splash (gesture pertama).
-// Loop aktif supaya tidak berhenti di tengah cerita.
 const bgAudio = new Audio('backsound.mp3');
 bgAudio.loop   = true;
 bgAudio.volume = 0.18;
 
 // ── SPLASH SCREEN ──
 const splash = document.getElementById('splash');
+let splashDismissed = false;
 
-function dismissSplash() {
-  bgAudio.play().catch(() => {});   // aman: di dalam gesture handler
+function dismissSplash(e) {
+  if (splashDismissed) return;
+  splashDismissed = true;
+  // Cegah click ikut terpanggil setelah touchstart
+  if (e && e.cancelable) e.preventDefault();
+  bgAudio.play().catch(() => {});
   splash.classList.add('splash-hide');
   setTimeout(() => {
     splash.remove();
@@ -26,8 +29,9 @@ function dismissSplash() {
   }, 900);
 }
 
-splash.addEventListener('click',      dismissSplash, { once: true });
-splash.addEventListener('touchstart', dismissSplash, { once: true });
+// Pasang di document supaya child element tidak menghalangi
+document.addEventListener('touchstart', dismissSplash, { once: true, passive: false });
+document.addEventListener('click',      dismissSplash, { once: true });
 
 // ── UTILS ──
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -380,10 +384,10 @@ async function runThoughts() {
   }
 }
 
-// ── MUSIC PLAYER (animasi saja, tidak ada audio) ──
+// ── MUSIC PLAYER (animasi saja) ──
 function openPlayer() {
-  const TOTAL = 4 * 60 + 52;   // durasi display
-  const START = 2 * 60 + 46;   // posisi awal display
+  const TOTAL = 4 * 60 + 52;
+  const START = 2 * 60 + 46;
   let current = START;
   let isPlaying = true;
 
@@ -519,4 +523,4 @@ async function run() {
     }
   }
 }
-// run() dipanggil oleh dismissSplash(), bukan langsung di sini
+// run() dipanggil oleh dismissSplash()
