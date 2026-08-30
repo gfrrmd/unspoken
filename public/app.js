@@ -7,29 +7,24 @@ dayScreen.id = 'dayScreen';
 dayScreen.innerHTML = '<div id="dayLabel"></div>';
 document.getElementById('app').appendChild(dayScreen);
 
-// Background audio
+// Ambient audio (volume rendah, mulai saat splash ditap)
 const bgAudio = new Audio('backsound.mp3');
 bgAudio.volume = 0.18;
 
-// ── SPLASH SCREEN ──
-// Musik hanya boleh diputar setelah gesture pengguna.
-// Splash screen memastikan ada tap sebelum run() dipanggil.
-const splash = document.getElementById('splash');
-const splashTap = document.getElementById('splash-tap');
+// Song audio untuk music player (volume penuh)
+const songAudio = new Audio('backsound.mp3');
+songAudio.volume = 0.9;
 
-// Animasi kedip pada teks "tap anywhere"
-let blinkTimer = setInterval(() => {
-  splashTap.style.opacity = splashTap.style.opacity === '0' ? '1' : '0';
-}, 700);
+// ── SPLASH SCREEN ──
+const splash = document.getElementById('splash');
 
 function dismissSplash() {
-  clearInterval(blinkTimer);
-  // Mulai audio langsung di sini — ini inside gesture handler, browser izinkan
+  // Langsung play di dalam gesture handler — browser izinkan
   bgAudio.play().catch(() => {});
   splash.classList.add('splash-hide');
   setTimeout(() => {
     splash.remove();
-    run(); // mulai cerita setelah splash hilang
+    run();
   }, 900);
 }
 
@@ -238,6 +233,10 @@ function scrollToCenter(el) {
 async function runCrashSequence() {
   if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
 
+  // Hentikan semua audio
+  songAudio.pause();
+  bgAudio.pause();
+
   await sleep(1200);
 
   for (let i = 0; i < 3; i++) {
@@ -290,6 +289,13 @@ async function runCrashSequence() {
 
   chat.innerHTML = '';
   lastSide = null;
+
+  // Restart ambient audio untuk sesi baru
+  songAudio.currentTime = 0;
+  bgAudio.currentTime = 0;
+  bgAudio.volume = 0.18;
+  bgAudio.play().catch(() => {});
+
   run();
 }
 
@@ -311,22 +317,22 @@ const CREDIT_LINES = [
   { text: 'Rama', cls: 'credit-name' },
   { text: '', cls: 'credit-gap' },
   { text: 'built with', cls: 'credit-label' },
-  { text: 'HTML · CSS · JavaScript', cls: 'credit-sublabel' },
+  { text: 'HTML \u00b7 CSS \u00b7 JavaScript', cls: 'credit-sublabel' },
   { text: '', cls: 'credit-gap' },
   { text: '', cls: 'credit-gap' },
-  { text: '—', cls: 'credit-divider' },
+  { text: '\u2014', cls: 'credit-divider' },
   { text: '', cls: 'credit-gap' },
   { text: 'some conversations end\nwithout a proper goodbye', cls: 'credit-tagline' },
   { text: '', cls: 'credit-gap' },
   { text: 'this was one of them', cls: 'credit-tagline-sm' },
   { text: '', cls: 'credit-gap' },
   { text: '', cls: 'credit-gap' },
-  { text: '—', cls: 'credit-divider' },
+  { text: '\u2014', cls: 'credit-divider' },
   { text: '', cls: 'credit-gap' },
   { text: 'no feelings were deleted\nin the making of this experience', cls: 'credit-tagline' },
   { text: '', cls: 'credit-gap' },
   { text: '', cls: 'credit-gap' },
-  { text: '© 2026 gfrrmd', cls: 'credit-copy' },
+  { text: '\u00a9 2026 gfrrmd', cls: 'credit-copy' },
   { text: '', cls: 'credit-gap' },
   { text: '', cls: 'credit-gap' },
 ];
@@ -388,20 +394,6 @@ async function runThoughts() {
 
 // INLINE MUSIC PLAYER
 function openPlayer() {
-  const TOTAL = 4 * 60 + 52;
-  const START = 2 * 60 + 46;
-  let current = START;
-  let isPlaying = true;
-
-  function fmt(s) {
-    s = Math.max(0, Math.min(TOTAL, Math.round(s)));
-    return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-  }
-
-  const sheet = document.createElement('div');
-  sheet.className = 'music-player-sheet';
-  playerSheet = sheet;
-
   const ICO_PREV   = `<svg width="44" height="44" viewBox="0 0 44 44" fill="white"><polygon points="22,8 6,22 22,36"/><rect x="26" y="8" width="6" height="28" rx="2"/></svg>`;
   const ICO_PAUSE  = `<svg width="52" height="52" viewBox="0 0 52 52" fill="white"><rect x="12" y="10" width="10" height="32" rx="3"/><rect x="30" y="10" width="10" height="32" rx="3"/></svg>`;
   const ICO_PLAY   = `<svg width="52" height="52" viewBox="0 0 52 52" fill="white"><polygon points="14,8 42,26 14,44"/></svg>`;
@@ -413,6 +405,10 @@ function openPlayer() {
   const ICO_LYRICS = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
   const ICO_AIR    = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"/><polygon points="12 15 17 21 7 21 12 15"/></svg>`;
   const ICO_QUEUE  = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6" stroke-width="2.5"/><line x1="3" y1="12" x2="3.01" y2="12" stroke-width="2.5"/><line x1="3" y1="18" x2="3.01" y2="18" stroke-width="2.5"/></svg>`;
+
+  const sheet = document.createElement('div');
+  sheet.className = 'music-player-sheet';
+  playerSheet = sheet;
 
   sheet.innerHTML = `
     <div class="mp-inner">
@@ -433,8 +429,8 @@ function openPlayer() {
       <div class="mp-progress-wrap">
         <div class="mp-bar-bg"><div class="mp-bar-fill" id="mpFill"></div></div>
         <div class="mp-times">
-          <span id="mpCurrent">2:46</span>
-          <span id="mpRemain">-2:06</span>
+          <span id="mpCurrent">0:00</span>
+          <span id="mpRemain">-0:00</span>
         </div>
       </div>
       <div class="mp-controls">
@@ -462,26 +458,36 @@ function openPlayer() {
   const remEl   = sheet.querySelector('#mpRemain');
   const playBtn = sheet.querySelector('#mpPlay');
 
+  function fmt(s) {
+    s = Math.max(0, Math.round(s));
+    return `${Math.floor(s / 60)}:${String(s % 60 | 0).padStart(2, '0')}`;
+  }
+
   function updateBar() {
-    fillEl.style.width = (current / TOTAL * 100) + '%';
-    curEl.textContent = fmt(current);
-    remEl.textContent = '-' + fmt(TOTAL - current);
+    const cur = songAudio.currentTime;
+    const dur = isFinite(songAudio.duration) ? songAudio.duration : 0;
+    fillEl.style.width = dur ? (cur / dur * 100) + '%' : '0%';
+    curEl.textContent  = fmt(cur);
+    remEl.textContent  = dur ? '-' + fmt(dur - cur) : '-0:00';
   }
-  function tick() {
-    if (!isPlaying) return;
-    current = Math.min(current + 1, TOTAL);
-    if (current >= TOTAL) { isPlaying = false; clearInterval(playerTimer); playBtn.innerHTML = ICO_PLAY; }
-    updateBar();
-  }
-  updateBar();
-  fillEl.style.transition = 'none';
-  requestAnimationFrame(() => { fillEl.style.transition = 'width 1s linear'; });
-  playerTimer = setInterval(tick, 1000);
+
+  // Hentikan ambient, putar song audio dari awal
+  bgAudio.pause();
+  songAudio.currentTime = 0;
+  songAudio.play().catch(() => {});
+
+  playerTimer = setInterval(updateBar, 500);
+  songAudio.addEventListener('timeupdate', updateBar);
+  songAudio.addEventListener('ended', () => { playBtn.innerHTML = ICO_PLAY; });
 
   playBtn.addEventListener('click', () => {
-    isPlaying = !isPlaying;
-    if (isPlaying) { playerTimer = setInterval(tick, 1000); playBtn.innerHTML = ICO_PAUSE; }
-    else { clearInterval(playerTimer); playBtn.innerHTML = ICO_PLAY; }
+    if (songAudio.paused) {
+      songAudio.play().catch(() => {});
+      playBtn.innerHTML = ICO_PAUSE;
+    } else {
+      songAudio.pause();
+      playBtn.innerHTML = ICO_PLAY;
+    }
   });
 
   runThoughts();
@@ -513,4 +519,4 @@ async function run() {
     }
   }
 }
-// run() dipanggil oleh dismissSplash(), bukan langsung di sini
+// run() dipanggil oleh dismissSplash()
