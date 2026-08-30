@@ -10,14 +10,31 @@ document.getElementById('app').appendChild(dayScreen);
 // Background audio
 const bgAudio = new Audio('backsound.mp3');
 bgAudio.volume = 0.18;
-let audioStarted = false;
-function startAudio() {
-  if (audioStarted) return;
-  audioStarted = true;
+
+// ── SPLASH SCREEN ──
+// Musik hanya boleh diputar setelah gesture pengguna.
+// Splash screen memastikan ada tap sebelum run() dipanggil.
+const splash = document.getElementById('splash');
+const splashTap = document.getElementById('splash-tap');
+
+// Animasi kedip pada teks "tap anywhere"
+let blinkTimer = setInterval(() => {
+  splashTap.style.opacity = splashTap.style.opacity === '0' ? '1' : '0';
+}, 700);
+
+function dismissSplash() {
+  clearInterval(blinkTimer);
+  // Mulai audio langsung di sini — ini inside gesture handler, browser izinkan
   bgAudio.play().catch(() => {});
+  splash.classList.add('splash-hide');
+  setTimeout(() => {
+    splash.remove();
+    run(); // mulai cerita setelah splash hilang
+  }, 900);
 }
-document.addEventListener('touchstart', startAudio, { once: true });
-document.addEventListener('click', startAudio, { once: true });
+
+splash.addEventListener('click',      dismissSplash, { once: true });
+splash.addEventListener('touchstart', dismissSplash, { once: true });
 
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <circle cx="50" cy="50" r="24" fill="#fff" opacity="0.92"/>
@@ -210,23 +227,19 @@ function showThoughtNotif(thought) {
 let playerSheet = null;
 let playerTimer = null;
 
-// Scroll chat so that `el` is vertically centered in the viewport
 function scrollToCenter(el) {
   const chatRect = chat.getBoundingClientRect();
   const elRect   = el.getBoundingClientRect();
-  // position of el relative to chat scroll container
   const elTop    = elRect.top - chatRect.top + chat.scrollTop;
   const target   = elTop - (chat.clientHeight / 2) + (elRect.height / 2);
   chat.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
 }
 
 async function runCrashSequence() {
-  // 1. stop timer (visual freeze)
   if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
 
   await sleep(1200);
 
-  // 2. screen flicker
   for (let i = 0; i < 3; i++) {
     document.body.style.filter = 'brightness(2.2)';
     await sleep(55);
@@ -235,14 +248,12 @@ async function runCrashSequence() {
   }
   await sleep(500);
 
-  // 3. crash dialog
   await showDialog(
     'App has stopped working.',
     'This app encountered an unexpected error.',
     [{ label: 'Close App', cls: 'destructive bold' }]
   );
 
-  // 4. fade out + disable player setelah user tap Close
   if (playerSheet) {
     playerSheet.querySelectorAll('button').forEach(b => b.disabled = true);
     playerSheet.style.transition = 'opacity 0.5s ease';
@@ -252,38 +263,26 @@ async function runCrashSequence() {
     playerSheet = null;
   }
 
-  // 5. dissolve bubble satu-satu dari bawah ke atas
-  //    tiap bubble: scroll ke tengah dulu → tunggu scroll selesai → fade out
   const allRows = Array.from(chat.querySelectorAll('.row, .ts, .system, .receipt, .not-delivered'));
-
   for (let i = allRows.length - 1; i >= 0; i--) {
     const el = allRows[i];
-
-    // scroll elemen ini ke tengah layar
     scrollToCenter(el);
-    // tunggu smooth scroll settle (~350ms cukup untuk jarak dekat)
     await sleep(380);
-
-    // fade out elemen ini
     el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
     el.style.opacity    = '0';
     el.style.transform  = 'translateY(6px)';
-    // tunggu fade selesai sebelum lanjut ke elemen berikutnya
     await sleep(420);
   }
   await sleep(300);
 
-  // 6. fade to black
   const blackout = document.createElement('div');
   blackout.style.cssText = 'position:fixed;inset:0;background:#000;z-index:9000;opacity:0;transition:opacity 1.2s ease;';
   document.body.appendChild(blackout);
   requestAnimationFrame(() => requestAnimationFrame(() => blackout.style.opacity = '1'));
   await sleep(1400);
 
-  // 7. credit scene
   await showCreditScene(blackout);
 
-  // 8. fade out, restart
   blackout.style.transition = 'opacity 1s ease';
   blackout.style.opacity = '0';
   await sleep(1100);
@@ -294,7 +293,7 @@ async function runCrashSequence() {
   run();
 }
 
-// CREDIT SCENE — gaya film: satu kolom panjang scroll dari bawah ke atas
+// CREDIT SCENE — gaya film
 const CREDIT_LINES = [
   { text: 'UNSPOKEN', cls: 'credit-title' },
   { text: '', cls: 'credit-gap' },
@@ -312,22 +311,22 @@ const CREDIT_LINES = [
   { text: 'Rama', cls: 'credit-name' },
   { text: '', cls: 'credit-gap' },
   { text: 'built with', cls: 'credit-label' },
-  { text: 'HTML \u00b7 CSS \u00b7 JavaScript', cls: 'credit-sublabel' },
+  { text: 'HTML · CSS · JavaScript', cls: 'credit-sublabel' },
   { text: '', cls: 'credit-gap' },
   { text: '', cls: 'credit-gap' },
-  { text: '\u2014', cls: 'credit-divider' },
+  { text: '—', cls: 'credit-divider' },
   { text: '', cls: 'credit-gap' },
-  { text: 'some conversations end\nyou typed but never sent', cls: 'credit-tagline' },
+  { text: 'some conversations end\nwithout a proper goodbye', cls: 'credit-tagline' },
   { text: '', cls: 'credit-gap' },
   { text: 'this was one of them', cls: 'credit-tagline-sm' },
   { text: '', cls: 'credit-gap' },
   { text: '', cls: 'credit-gap' },
-  { text: '\u2014', cls: 'credit-divider' },
+  { text: '—', cls: 'credit-divider' },
   { text: '', cls: 'credit-gap' },
   { text: 'no feelings were deleted\nin the making of this experience', cls: 'credit-tagline' },
   { text: '', cls: 'credit-gap' },
   { text: '', cls: 'credit-gap' },
-  { text: '\u00a9 2026 gfrrmd', cls: 'credit-copy' },
+  { text: '© 2026 gfrrmd', cls: 'credit-copy' },
   { text: '', cls: 'credit-gap' },
   { text: '', cls: 'credit-gap' },
 ];
@@ -514,4 +513,4 @@ async function run() {
     }
   }
 }
-run();
+// run() dipanggil oleh dismissSplash(), bukan langsung di sini
