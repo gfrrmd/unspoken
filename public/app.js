@@ -144,11 +144,11 @@ async function deleteFeelingSequence() {
   }
 }
 
-// MUSIC NOTIF
+// MUSIC NOTIF — liquid glass
 function showMusicNotif() {
   return new Promise(resolve => {
     const notif = document.createElement('div');
-    notif.className = 'music-notif';
+    notif.className = 'music-notif lg-card';
     notif.innerHTML = `
       <div class="music-notif-icon">
         <svg viewBox="0 0 24 24" fill="white"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
@@ -164,35 +164,34 @@ function showMusicNotif() {
     notif.querySelector('.music-notif-open').addEventListener('click', () => {
       notif.style.transition = 'transform 0.35s ease, opacity 0.35s ease';
       notif.style.opacity = '0';
-      notif.style.transform = 'translateX(-50%) translateY(-120%)';
+      notif.style.transform = 'translateX(-50%) translateY(-130%)';
       setTimeout(() => { notif.remove(); resolve(); }, 360);
     });
   });
 }
 
-// ── THOUGHT NOTIFICATIONS ──
+// ── THOUGHT NOTIFICATIONS — liquid glass ──
 const THOUGHTS = [
-  { app: 'Notes',    text: 'Why did you make me feel chosen if you were going to leave anyway?' },
-  { app: 'Notes',    text: 'I keep checking your profile even though I know nothing\u2019s there.' },
-  { app: 'Notes',    text: 'I wasn\u2019t asking for much. Just honesty.' },
-  { app: 'Notes',    text: 'You were the one who started this.' },
-  { app: 'Notes',    text: 'I still don\u2019t know what I did wrong.' },
-  { app: 'Notes',    text: 'Some nights I write messages I never send.' },
-  { app: 'Notes',    text: 'I think about the version of you that was kind to me.' },
-  { app: 'Notes',    text: 'Moving on feels like a betrayal of everything I felt.' },
-  { app: 'Notes',    text: 'I\u2019m not angry anymore. I\u2019m just tired.' },
-  { app: 'Notes',    text: 'I hope you\u2019re okay. I hate that I still mean it.' },
+  { app: 'Notes', text: 'Why did you make me feel chosen if you were going to leave anyway?' },
+  { app: 'Notes', text: 'I keep checking your profile even though I know nothing’s there.' },
+  { app: 'Notes', text: 'I wasn’t asking for much. Just honesty.' },
+  { app: 'Notes', text: 'You were the one who started this.' },
+  { app: 'Notes', text: 'I still don’t know what I did wrong.' },
+  { app: 'Notes', text: 'Some nights I write messages I never send.' },
+  { app: 'Notes', text: 'I think about the version of you that was kind to me.' },
+  { app: 'Notes', text: 'Moving on feels like a betrayal of everything I felt.' },
+  { app: 'Notes', text: 'I’m not angry anymore. I’m just tired.' },
+  { app: 'Notes', text: 'I hope you’re okay. I hate that I still mean it.' },
 ];
 
-// Show a single thought banner — auto-dismisses after 4s, stacks below previous
-let thoughtOffset = 0;
 function showThoughtNotif(thought) {
   const notif = document.createElement('div');
-  notif.className = 'thought-notif';
-  notif.style.setProperty('--offset', thoughtOffset + 'px');
+  notif.className = 'thought-notif lg-card';
   notif.innerHTML = `
     <div class="thought-notif-icon">
-      <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M3 3h18v14H3V3zm0 14l4 4h10l4-4"/></svg>
+      <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
+        <path d="M3 3h18v2H3zm0 4h18v2H3zm0 4h12v2H3zm0 4h8v2H3z"/>
+      </svg>
     </div>
     <div class="thought-notif-body">
       <div class="thought-notif-app">${thought.app}</div>
@@ -200,16 +199,13 @@ function showThoughtNotif(thought) {
     </div>`;
   document.body.appendChild(notif);
   requestAnimationFrame(() => requestAnimationFrame(() => notif.classList.add('show')));
-
-  // auto dismiss after 4.5s
   setTimeout(() => {
     notif.classList.add('hide');
-    setTimeout(() => notif.remove(), 500);
+    setTimeout(() => notif.remove(), 400);
   }, 4500);
 }
 
 async function runThoughts() {
-  // Start after 3s, fire each with 5s gap
   await sleep(3000);
   for (const t of THOUGHTS) {
     showThoughtNotif(t);
@@ -315,7 +311,6 @@ function openPlayer() {
     else { clearInterval(timer); playBtn.innerHTML = ICO_PLAY; }
   });
 
-  // kick off thought notifications
   runThoughts();
 }
 
