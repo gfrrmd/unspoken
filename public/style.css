@@ -256,13 +256,10 @@ html, body {
 /* ============================
    CREDIT SCENE — cinematic scroll
    ============================ */
-
-/* viewport: full screen, clips overflow, fade mask top+bottom */
 .credit-viewport {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  /* fade mask — text fades in/out at edges like real film credits */
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
@@ -278,8 +275,6 @@ html, body {
     transparent 100%
   );
 }
-
-/* the scrolling column */
 .credit-col {
   display: flex;
   flex-direction: column;
@@ -288,84 +283,111 @@ html, body {
   padding: 0 40px;
   will-change: transform;
 }
-
-.credit-gap {
-  height: 36px;
-  flex-shrink: 0;
-}
-
-.credit-col-line {
-  text-align: center;
-  line-height: 1.5;
-  flex-shrink: 0;
-}
-
-/* font: light-weight geometric sans — much cleaner than system-ui default */
+.credit-gap { height: 36px; flex-shrink: 0; }
+.credit-col-line { text-align: center; line-height: 1.5; flex-shrink: 0; }
 .credit-title {
   font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, 'Noto Sans', sans-serif;
-  font-size: 20px;
-  font-weight: 300;
-  letter-spacing: 10px;
-  text-transform: uppercase;
-  color: #ffffff;
-  margin-bottom: 2px;
+  font-size: 20px; font-weight: 300; letter-spacing: 10px;
+  text-transform: uppercase; color: #ffffff; margin-bottom: 2px;
 }
-
-.credit-divider {
-  font-size: 18px;
-  color: #444;
-  letter-spacing: 4px;
-}
-
+.credit-divider { font-size: 18px; color: #444; letter-spacing: 4px; }
 .credit-tagline {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 14px;
-  font-weight: 400;
-  font-style: italic;
-  color: #888;
-  line-height: 1.9;
+  font-size: 14px; font-weight: 400; font-style: italic;
+  color: #888; line-height: 1.9;
 }
-
 .credit-tagline-sm {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 13px;
-  font-weight: 400;
-  font-style: italic;
-  color: #666;
-  line-height: 1.8;
+  font-size: 13px; font-weight: 400; font-style: italic;
+  color: #666; line-height: 1.8;
 }
-
 .credit-label {
   font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, 'Noto Sans', sans-serif;
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #555;
-  margin-top: 4px;
+  font-size: 10px; font-weight: 400; letter-spacing: 3px;
+  text-transform: uppercase; color: #555; margin-top: 4px;
 }
-
 .credit-name {
   font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, 'Noto Sans', sans-serif;
-  font-size: 17px;
-  font-weight: 300;
-  letter-spacing: 2px;
-  color: #d4d4d4;
+  font-size: 17px; font-weight: 300; letter-spacing: 2px; color: #d4d4d4;
 }
-
 .credit-sublabel {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 12px;
-  font-style: italic;
-  color: #666;
-  letter-spacing: 0.5px;
+  font-size: 12px; font-style: italic; color: #666; letter-spacing: 0.5px;
 }
-
 .credit-copy {
   font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, 'Noto Sans', sans-serif;
-  font-size: 10px;
-  font-weight: 300;
-  letter-spacing: 2.5px;
-  color: #444;
+  font-size: 10px; font-weight: 300; letter-spacing: 2.5px;
+  color: #444; text-transform: uppercase;
+}
+
+/* ============================
+   SPLASH SCREEN
+   ============================ */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.9s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+#splash.splash-hide {
+  opacity: 0;
+  pointer-events: none;
+}
+#splash-inner {
+  text-align: center;
+  color: #fff;
+  padding: 0 32px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+#splash-title {
+  font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, sans-serif;
+  font-size: 38px;
+  font-weight: 200;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
+  color: #ffffff;
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateY(14px);
+  animation: splashFadeUp 1.1s ease forwards 0.3s;
+}
+#splash-sub {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.7;
+  color: #666;
+  margin-bottom: 56px;
+  opacity: 0;
+  transform: translateY(14px);
+  animation: splashFadeUp 1.1s ease forwards 0.65s;
+}
+#splash-tap {
+  font-family: 'Gill Sans', 'Gill Sans MT', Optima, Candara, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #3a3a3a;
+  animation: splashBlink 2s ease-in-out infinite 1.6s;
+  opacity: 0;
+}
+@keyframes splashFadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes splashBlink {
+  0%, 100% { opacity: 0.2; }
+  50%       { opacity: 0.8; }
 }
