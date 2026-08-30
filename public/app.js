@@ -100,11 +100,13 @@ async function typingGone() {
   row.classList.remove('show'); await sleep(300); row.remove(); await sleep(900);
 }
 
-// DIALOG
+// DIALOG — z-index diset lewat inline style agar selalu di atas segalanya
 function showDialog(title, msg, buttons) {
   return new Promise(resolve => {
     const backdrop = document.createElement('div');
     backdrop.className = 'dialog-backdrop';
+    // paksa z-index tertinggi supaya selalu di atas music player sheet (z:400)
+    backdrop.style.zIndex = '9999';
     const dialog = document.createElement('div'); dialog.className = 'dialog';
     dialog.innerHTML = `
       <div class="dialog-body">
@@ -210,31 +212,31 @@ let playerSheet = null;
 let playerTimer = null;
 
 async function runCrashSequence() {
-  // 1. freeze player — disable all controls
-  if (playerSheet) {
-    playerSheet.querySelectorAll('button').forEach(b => b.disabled = true);
-    if (playerTimer) clearInterval(playerTimer);
-  }
+  // 1. stop timer dulu (visual freeze progress bar) — JANGAN disable button dulu
+  if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
+
   await sleep(1200);
 
   // 2. screen flicker
   for (let i = 0; i < 3; i++) {
-    document.body.style.filter = 'brightness(2)';
-    await sleep(60);
+    document.body.style.filter = 'brightness(2.2)';
+    await sleep(55);
     document.body.style.filter = 'brightness(1)';
-    await sleep(80);
+    await sleep(75);
   }
-  await sleep(600);
+  await sleep(500);
 
-  // 3. crash dialog
+  // 3. crash dialog — muncul DI ATAS player sheet
+  // (z-index 9999 di-set lewat inline style di showDialog)
   await showDialog(
     'Unspoken has stopped working.',
     'This app encountered an unexpected error.',
     [{ label: 'Close App', cls: 'destructive bold' }]
   );
 
-  // 4. fade out player sheet
+  // 4. setelah user tap Close — baru disable dan fade out player
   if (playerSheet) {
+    playerSheet.querySelectorAll('button').forEach(b => b.disabled = true);
     playerSheet.style.transition = 'opacity 0.5s ease';
     playerSheet.style.opacity = '0';
     await sleep(520);
@@ -262,13 +264,12 @@ async function runCrashSequence() {
   // 7. credit scene
   await showCreditScene(blackout);
 
-  // 8. fade out credits, then restart
+  // 8. fade out, restart
   blackout.style.transition = 'opacity 1s ease';
   blackout.style.opacity = '0';
   await sleep(1100);
   blackout.remove();
 
-  // clear chat and restart
   chat.innerHTML = '';
   lastSide = null;
   run();
@@ -312,22 +313,15 @@ async function showCreditScene(container) {
   container.appendChild(wrap);
 
   for (const line of CREDIT_LINES) {
-    if (line.cls === 'credit-spacer') {
-      await sleep(500);
-      continue;
-    }
+    if (line.cls === 'credit-spacer') { await sleep(500); continue; }
     const el = document.createElement('div');
     el.className = `credit-line ${line.cls}`;
-    // support \n as <br>
     el.innerHTML = line.text.replace(/\n/g, '<br>');
     wrap.appendChild(el);
     requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
     await sleep(line.cls === 'credit-title' ? 1200 : line.cls === 'credit-tagline' ? 1800 : 900);
   }
-  // hold at end
   await sleep(2500);
-
-  // fade out all credit lines
   wrap.style.transition = 'opacity 1s ease';
   wrap.style.opacity = '0';
   await sleep(1100);
@@ -341,7 +335,6 @@ async function runThoughts() {
     if (i < THOUGHTS.length - 1) {
       await sleep(5000);
     } else {
-      // last notif: wait for it to dismiss, then crash
       await sleep(5500);
       runCrashSequence();
     }
