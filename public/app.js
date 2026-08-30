@@ -7,20 +7,18 @@ dayScreen.id = 'dayScreen';
 dayScreen.innerHTML = '<div id="dayLabel"></div>';
 document.getElementById('app').appendChild(dayScreen);
 
-// Ambient audio (volume rendah, mulai saat splash ditap)
+// ── BACKGROUND AUDIO ──
+// Diputar saat user tap splash (gesture pertama).
+// Loop aktif supaya tidak berhenti di tengah cerita.
 const bgAudio = new Audio('backsound.mp3');
+bgAudio.loop   = true;
 bgAudio.volume = 0.18;
-
-// Song audio untuk music player (volume penuh)
-const songAudio = new Audio('backsound.mp3');
-songAudio.volume = 0.9;
 
 // ── SPLASH SCREEN ──
 const splash = document.getElementById('splash');
 
 function dismissSplash() {
-  // Langsung play di dalam gesture handler — browser izinkan
-  bgAudio.play().catch(() => {});
+  bgAudio.play().catch(() => {});   // aman: di dalam gesture handler
   splash.classList.add('splash-hide');
   setTimeout(() => {
     splash.remove();
@@ -31,6 +29,7 @@ function dismissSplash() {
 splash.addEventListener('click',      dismissSplash, { once: true });
 splash.addEventListener('touchstart', dismissSplash, { once: true });
 
+// ── UTILS ──
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <circle cx="50" cy="50" r="24" fill="#fff" opacity="0.92"/>
   <ellipse cx="50" cy="108" rx="44" ry="40" fill="#fff" opacity="0.92"/>
@@ -112,7 +111,7 @@ async function typingGone() {
   row.classList.remove('show'); await sleep(300); row.remove(); await sleep(900);
 }
 
-// DIALOG
+// ── DIALOG ──
 function showDialog(title, msg, buttons) {
   return new Promise(resolve => {
     const backdrop = document.createElement('div');
@@ -157,7 +156,7 @@ async function deleteFeelingSequence() {
   }
 }
 
-// MUSIC NOTIF
+// ── MUSIC NOTIF ──
 function showMusicNotif() {
   return new Promise(resolve => {
     const notif = document.createElement('div');
@@ -183,7 +182,7 @@ function showMusicNotif() {
   });
 }
 
-// THOUGHT NOTIFICATIONS
+// ── THOUGHT NOTIFICATIONS ──
 const THOUGHTS = [
   { app: 'Notes', text: 'Why did you make me feel chosen if you were going to leave anyway?' },
   { app: 'Notes', text: 'I keep checking your profile even though I know nothing\u2019s there.' },
@@ -232,10 +231,6 @@ function scrollToCenter(el) {
 
 async function runCrashSequence() {
   if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
-
-  // Hentikan semua audio
-  songAudio.pause();
-  bgAudio.pause();
 
   await sleep(1200);
 
@@ -289,17 +284,10 @@ async function runCrashSequence() {
 
   chat.innerHTML = '';
   lastSide = null;
-
-  // Restart ambient audio untuk sesi baru
-  songAudio.currentTime = 0;
-  bgAudio.currentTime = 0;
-  bgAudio.volume = 0.18;
-  bgAudio.play().catch(() => {});
-
   run();
 }
 
-// CREDIT SCENE — gaya film
+// ── CREDIT SCENE ──
 const CREDIT_LINES = [
   { text: 'UNSPOKEN', cls: 'credit-title' },
   { text: '', cls: 'credit-gap' },
@@ -392,8 +380,18 @@ async function runThoughts() {
   }
 }
 
-// INLINE MUSIC PLAYER
+// ── MUSIC PLAYER (animasi saja, tidak ada audio) ──
 function openPlayer() {
+  const TOTAL = 4 * 60 + 52;   // durasi display
+  const START = 2 * 60 + 46;   // posisi awal display
+  let current = START;
+  let isPlaying = true;
+
+  function fmt(s) {
+    s = Math.max(0, Math.min(TOTAL, Math.round(s)));
+    return `${Math.floor(s / 60)}:${String(s % 60 | 0).padStart(2, '0')}`;
+  }
+
   const ICO_PREV   = `<svg width="44" height="44" viewBox="0 0 44 44" fill="white"><polygon points="22,8 6,22 22,36"/><rect x="26" y="8" width="6" height="28" rx="2"/></svg>`;
   const ICO_PAUSE  = `<svg width="52" height="52" viewBox="0 0 52 52" fill="white"><rect x="12" y="10" width="10" height="32" rx="3"/><rect x="30" y="10" width="10" height="32" rx="3"/></svg>`;
   const ICO_PLAY   = `<svg width="52" height="52" viewBox="0 0 52 52" fill="white"><polygon points="14,8 42,26 14,44"/></svg>`;
@@ -429,8 +427,8 @@ function openPlayer() {
       <div class="mp-progress-wrap">
         <div class="mp-bar-bg"><div class="mp-bar-fill" id="mpFill"></div></div>
         <div class="mp-times">
-          <span id="mpCurrent">0:00</span>
-          <span id="mpRemain">-0:00</span>
+          <span id="mpCurrent">${fmt(START)}</span>
+          <span id="mpRemain">-${fmt(TOTAL - START)}</span>
         </div>
       </div>
       <div class="mp-controls">
@@ -458,34 +456,35 @@ function openPlayer() {
   const remEl   = sheet.querySelector('#mpRemain');
   const playBtn = sheet.querySelector('#mpPlay');
 
-  function fmt(s) {
-    s = Math.max(0, Math.round(s));
-    return `${Math.floor(s / 60)}:${String(s % 60 | 0).padStart(2, '0')}`;
-  }
-
   function updateBar() {
-    const cur = songAudio.currentTime;
-    const dur = isFinite(songAudio.duration) ? songAudio.duration : 0;
-    fillEl.style.width = dur ? (cur / dur * 100) + '%' : '0%';
-    curEl.textContent  = fmt(cur);
-    remEl.textContent  = dur ? '-' + fmt(dur - cur) : '-0:00';
+    fillEl.style.width = (current / TOTAL * 100) + '%';
+    curEl.textContent  = fmt(current);
+    remEl.textContent  = '-' + fmt(TOTAL - current);
   }
 
-  // Hentikan ambient, putar song audio dari awal
-  bgAudio.pause();
-  songAudio.currentTime = 0;
-  songAudio.play().catch(() => {});
+  function tick() {
+    if (!isPlaying) return;
+    current = Math.min(current + 1, TOTAL);
+    if (current >= TOTAL) {
+      isPlaying = false;
+      clearInterval(playerTimer);
+      playBtn.innerHTML = ICO_PLAY;
+    }
+    updateBar();
+  }
 
-  playerTimer = setInterval(updateBar, 500);
-  songAudio.addEventListener('timeupdate', updateBar);
-  songAudio.addEventListener('ended', () => { playBtn.innerHTML = ICO_PLAY; });
+  updateBar();
+  fillEl.style.transition = 'none';
+  requestAnimationFrame(() => { fillEl.style.transition = 'width 1s linear'; });
+  playerTimer = setInterval(tick, 1000);
 
   playBtn.addEventListener('click', () => {
-    if (songAudio.paused) {
-      songAudio.play().catch(() => {});
+    isPlaying = !isPlaying;
+    if (isPlaying) {
+      playerTimer = setInterval(tick, 1000);
       playBtn.innerHTML = ICO_PAUSE;
     } else {
-      songAudio.pause();
+      clearInterval(playerTimer);
       playBtn.innerHTML = ICO_PLAY;
     }
   });
@@ -493,7 +492,7 @@ function openPlayer() {
   runThoughts();
 }
 
-// POST ENDING
+// ── POST ENDING ──
 async function postEnding() {
   await sleep(1400);
   await deleteFeelingSequence();
@@ -502,15 +501,16 @@ async function postEnding() {
   openPlayer();
 }
 
+// ── MAIN LOOP ──
 async function run() {
   lastSide = null;
   await sleep(700);
   for (const msg of MESSAGES) {
     switch (msg.t) {
-      case 'ts': lastSide = null; await sleep(1800); await dayTransition(msg.text); await sleep(300); break;
+      case 'ts':            lastSide = null; await sleep(1800); await dayTransition(msg.text); await sleep(300); break;
       case 'him':           await addBubble('him', msg.text); await sleep(480); break;
-      case 'me':            await addBubble('me', msg.text);  await sleep(380); break;
-      case 'me-unsent':     await addBubble('me', msg.text, true); await sleep(380); break;
+      case 'me':            await addBubble('me',  msg.text); await sleep(380); break;
+      case 'me-unsent':     await addBubble('me',  msg.text, true); await sleep(380); break;
       case 'seen':          await addSeen(); break;
       case 'typing-gone':   await typingGone(); break;
       case 'system':        await addSystem(msg.text); break;
@@ -519,4 +519,4 @@ async function run() {
     }
   }
 }
-// run() dipanggil oleh dismissSplash()
+// run() dipanggil oleh dismissSplash(), bukan langsung di sini
