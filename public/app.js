@@ -8,18 +8,18 @@ dayScreen.innerHTML = '<div id="dayLabel"></div>';
 document.getElementById('app').appendChild(dayScreen);
 
 // ── BACKGROUND AUDIO ──
-const bgAudio = new Audio('backsound.mp3');
-bgAudio.loop   = true;
+// Pakai tag <audio> di HTML (sama seperti Location-Unknown yg proven bisa bunyi)
+// bukan new Audio() di JS
+const bgAudio = document.getElementById('bgAudio');
 bgAudio.volume = 0.18;
-let audioStarted = false;
 
+let audioStarted = false;
 function startAudio() {
   if (audioStarted) return;
   audioStarted = true;
   bgAudio.play().catch(() => {});
 }
 
-// Audio dipicu oleh interaksi pertama APAPUN di halaman
 document.addEventListener('touchstart', startAudio, { once: true, passive: true });
 document.addEventListener('click',      startAudio, { once: true });
 
@@ -37,8 +37,8 @@ function dismissSplash() {
   }, 900);
 }
 
-splash.addEventListener('click',      dismissSplash, { once: true });
-splash.addEventListener('touchend',   dismissSplash, { once: true, passive: true });
+splash.addEventListener('click',    dismissSplash, { once: true });
+splash.addEventListener('touchend', dismissSplash, { once: true, passive: true });
 
 // ── UTILS ──
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
