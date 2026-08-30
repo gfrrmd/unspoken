@@ -1,9 +1,9 @@
 const MESSAGES = [
-  { t: 'ts', text: 'Jul 17 at 8:41 PM' },
+  { t: 'ts', text: 'The beginning' },
 
-  { t: 'him', text: 'Hey, sorry to bother. I just think you\'re really interesting.' },
+  { t: 'him', text: 'Hey Rama, sorry to bother. I just think you\'re really interesting.' },
   { t: 'him', text: 'Can we talk?' },
-  { t: 'me',  text: 'Sure.' },
+  { t: 'me',  text: 'Sure, Mr.M' },
   { t: 'him', text: 'I\'m glad you said yes.' },
   { t: 'him', text: 'I really want to meet you in person.' },
   { t: 'me',  text: 'Yeah? Why?' },
@@ -23,7 +23,7 @@ const MESSAGES = [
   { t: 'me',  text: 'Just fine? You seem quiet lately.' },
   { t: 'him', text: 'just busy' },
   { t: 'me',  text: 'Okay. I\'m here if you want to talk.' },
-  { t: 'him', text: 'ok' },
+  { t: 'him', text: 'ok ram' },
 
   { t: 'ts', text: 'The next morning' },
 
@@ -58,12 +58,12 @@ const MESSAGES = [
 
   { t: 'ts', text: 'A few days later' },
 
-  { t: 'me',  text: 'Hey.' },
-  { t: 'system', text: 'm._____ is no longer following you.\nYou can no longer send messages to this account.' },
+  { t: 'me',  text: 'Hey?' },
+  { t: 'system', text: '@m_almost is no longer following you.\nYou can no longer send messages to this account.' },
 
   { t: 'ts', text: 'Until now' },
 
-  { t: 'me-unsent', text: '...' },
+  { t: 'me-unsent', text: '.....?' },
   { t: 'not-delivered' },
 
   { t: 'post-ending' },
