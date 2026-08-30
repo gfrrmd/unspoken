@@ -1,8 +1,8 @@
 const messages = [
   { type: 'timestamp', text: 'The beginning' },
-  { type: 'him', text: 'Hey, sorry to bother. I just think you\'re really interesting.' },
+  { type: 'him', text: 'Hey Rama, sorry to bother. I just think you\'re really interesting.' },
   { type: 'him', text: 'Can we talk?' },
-  { type: 'me', text: 'Sure.' },
+  { type: 'me', text: 'Sure, Mr. M' },
   { type: 'him', text: 'I\'m glad you said yes.' },
   { type: 'him', text: 'I really want to meet you in person.' },
   { type: 'me', text: 'Yeah? Why?' },
@@ -20,7 +20,7 @@ const messages = [
   { type: 'me', text: 'Just fine? You seem quiet lately.' },
   { type: 'him', text: 'just busy' },
   { type: 'me', text: 'Okay. I\'m here if you want to talk.' },
-  { type: 'him', text: 'ok' },
+  { type: 'him', text: 'ok ram' },
   { type: 'me', text: 'Good morning!' },
   { type: 'seen', text: 'Seen' },
 
@@ -48,11 +48,11 @@ const messages = [
   { type: 'him', text: 'i don\'t know' },
 
   { type: 'timestamp', text: 'A few days later' },
-  { type: 'me', text: 'Hey.' },
-  { type: 'system', text: '@m._____ is no longer following you.\nYou can no longer send messages to this account.' },
+  { type: 'me', text: 'Hey?' },
+  { type: 'system', text: '@m_almost is no longer following you.\nYou can no longer send messages to this account.' },
 
   { type: 'timestamp', text: 'Until now' },
-  { type: 'me-unsent', text: '...' },
+  { type: 'me-unsent', text: '.....?' },
   { type: 'not-delivered', text: 'Message not delivered.' },
 
   { type: 'ending' }
