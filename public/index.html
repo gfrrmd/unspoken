@@ -8,17 +8,16 @@
 </head>
 <body>
 
-  <!-- SPLASH SCREEN -->
-  <div id="splash">
-    <div id="splash-inner">
-      <div id="splash-title">unspoken</div>
-      <div id="splash-sub">a story about the messages<br>you typed but never sent</div>
-      <div id="splash-tap">tap anywhere to begin</div>
+  <!-- LOADING SCREEN -->
+  <div id="loading">
+    <div id="loading-inner">
+      <div id="loading-title">unspoken</div>
+      <div id="loading-sub">a story about the messages<br>you typed but never sent</div>
     </div>
   </div>
 
-  <!-- AUDIO — sama persis seperti Location-Unknown yang proven bisa bunyi -->
-  <audio id="bgAudio" src="backsound.mp3" loop preload="none"></audio>
+  <!-- AUDIO: muted autoplay trick -->
+  <audio id="bgAudio" src="backsound.mp3" loop muted></audio>
 
   <div id="app">
     <div class="header">

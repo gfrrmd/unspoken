@@ -8,37 +8,35 @@ dayScreen.innerHTML = '<div id="dayLabel"></div>';
 document.getElementById('app').appendChild(dayScreen);
 
 // ── BACKGROUND AUDIO ──
-// Pakai tag <audio> di HTML (sama seperti Location-Unknown yg proven bisa bunyi)
-// bukan new Audio() di JS
+// Trick: mulai muted (browser izinkan autoplay muted)
+// lalu langsung unmute — audio sudah jalan sebelum user perlu tap
 const bgAudio = document.getElementById('bgAudio');
 bgAudio.volume = 0.18;
 
-let audioStarted = false;
-function startAudio() {
-  if (audioStarted) return;
-  audioStarted = true;
-  bgAudio.play().catch(() => {});
-}
+bgAudio.play().then(() => {
+  // Berhasil autoplay muted — langsung unmute
+  bgAudio.muted = false;
+}).catch(() => {
+  // Fallback: tunggu interaksi pertama
+  const unmute = () => {
+    bgAudio.muted = false;
+    bgAudio.play().catch(() => {});
+  };
+  document.addEventListener('touchstart', unmute, { once: true, passive: true });
+  document.addEventListener('click', unmute, { once: true });
+});
 
-document.addEventListener('touchstart', startAudio, { once: true, passive: true });
-document.addEventListener('click',      startAudio, { once: true });
+// ── LOADING SCREEN (otomatis, tidak perlu tap) ──
+const loading = document.getElementById('loading');
 
-// ── SPLASH SCREEN ──
-const splash = document.getElementById('splash');
-let splashDismissed = false;
-
-function dismissSplash() {
-  if (splashDismissed) return;
-  splashDismissed = true;
-  splash.classList.add('splash-hide');
+// Setelah 3.2 detik loading screen fade out, lalu run()
+setTimeout(() => {
+  loading.classList.add('loading-hide');
   setTimeout(() => {
-    splash.remove();
+    loading.remove();
     run();
-  }, 900);
-}
-
-splash.addEventListener('click',    dismissSplash, { once: true });
-splash.addEventListener('touchend', dismissSplash, { once: true, passive: true });
+  }, 1000);
+}, 3200);
 
 // ── UTILS ──
 const AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -242,9 +240,7 @@ function scrollToCenter(el) {
 
 async function runCrashSequence() {
   if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
-
   await sleep(1200);
-
   for (let i = 0; i < 3; i++) {
     document.body.style.filter = 'brightness(2.2)';
     await sleep(55);
@@ -252,13 +248,11 @@ async function runCrashSequence() {
     await sleep(75);
   }
   await sleep(500);
-
   await showDialog(
     'App has stopped working.',
     'This app encountered an unexpected error.',
     [{ label: 'Close App', cls: 'destructive bold' }]
   );
-
   if (playerSheet) {
     playerSheet.querySelectorAll('button').forEach(b => b.disabled = true);
     playerSheet.style.transition = 'opacity 0.5s ease';
@@ -267,7 +261,6 @@ async function runCrashSequence() {
     playerSheet.remove();
     playerSheet = null;
   }
-
   const allRows = Array.from(chat.querySelectorAll('.row, .ts, .system, .receipt, .not-delivered'));
   for (let i = allRows.length - 1; i >= 0; i--) {
     const el = allRows[i];
@@ -279,20 +272,16 @@ async function runCrashSequence() {
     await sleep(420);
   }
   await sleep(300);
-
   const blackout = document.createElement('div');
   blackout.style.cssText = 'position:fixed;inset:0;background:#000;z-index:9000;opacity:0;transition:opacity 1.2s ease;';
   document.body.appendChild(blackout);
   requestAnimationFrame(() => requestAnimationFrame(() => blackout.style.opacity = '1'));
   await sleep(1400);
-
   await showCreditScene(blackout);
-
   blackout.style.transition = 'opacity 1s ease';
   blackout.style.opacity = '0';
   await sleep(1100);
   blackout.remove();
-
   chat.innerHTML = '';
   lastSide = null;
   run();
@@ -340,11 +329,9 @@ async function showCreditScene(container) {
   const viewport = document.createElement('div');
   viewport.className = 'credit-viewport';
   container.appendChild(viewport);
-
   const col = document.createElement('div');
   col.className = 'credit-col';
   viewport.appendChild(col);
-
   for (const line of CREDIT_LINES) {
     const el = document.createElement('div');
     if (line.cls === 'credit-gap') {
@@ -355,23 +342,17 @@ async function showCreditScene(container) {
     }
     col.appendChild(el);
   }
-
   await sleep(60);
   const colH = col.scrollHeight;
   const vpH  = viewport.clientHeight || window.innerHeight;
-
   col.style.transform = `translateY(${vpH}px)`;
   col.style.transition = 'none';
   await sleep(30);
-
   const totalTravel = vpH + colH;
   const durationMs  = Math.round(totalTravel / 55 * 1000);
-
   col.style.transition = `transform ${durationMs}ms linear`;
   col.style.transform  = `translateY(-${colH}px)`;
-
   await sleep(durationMs + 800);
-
   viewport.style.transition = 'opacity 1s ease';
   viewport.style.opacity = '0';
   await sleep(1100);
@@ -391,7 +372,7 @@ async function runThoughts() {
   }
 }
 
-// ── MUSIC PLAYER (animasi saja) ──
+// ── MUSIC PLAYER ──
 function openPlayer() {
   const TOTAL = 4 * 60 + 52;
   const START = 2 * 60 + 46;
@@ -530,4 +511,4 @@ async function run() {
     }
   }
 }
-// run() dipanggil oleh dismissSplash()
+// run() dipanggil otomatis oleh loading screen timeout
